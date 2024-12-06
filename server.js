@@ -51,13 +51,13 @@ io.on("connection", (socket) => {
     });
 
     // Handle challenge request
-    socket.on("sendChallenge", ({ challenger, opponent }) => {
+    socket.on("sendChallenge", ({ challenger, opponent, timer }) => {
         const opponentSocketId = Object.keys(onlineUsers).find(
         (id) => onlineUsers[id] === opponent
         );
 
         if (opponentSocketId) {
-        io.to(opponentSocketId).emit("receiveChallenge", { challenger });
+        io.to(opponentSocketId).emit("receiveChallenge", { challenger, timer });
         }
     });
 
