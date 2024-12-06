@@ -7,16 +7,19 @@ import Signup from "./Signup";
 import OnlineUsers from "./OnlineUsers";
 import ChallengePopup from "./ChallengePopup";
 import { UserType } from "../types/types";
+import ChallengerPopup from "./ChallengerPopup";
 
 const Home = () => {
   const { user } = useUser();
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [challenger, setChallenger] = useState(null);
-  const [timer, setTimer] = useState(10);
+  const [opponant, setOpponant] = useState<string>("");
+  const [isChallengePopUpOpen, setIsChallengePopUpOpen] = useState(false);
+  const [timer, setTimer] = useState("10 min");
   const navigate = useNavigate();
   const socket = useContext(SocketContext)
-  const handleChallenge = (opponent: string) => {
-    socket.emit("sendChallenge", { challenger: user?.username, opponent });
+  const handleChallenge = (opponent: string, timer: string) => {
+    socket.emit("sendChallenge", { challenger: user?.username, opponent, timer });
   };
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
@@ -87,27 +90,12 @@ const Home = () => {
 
   useEffect(() => {
     // Listen for incoming challenges
-    socket.on("receiveChallenge", ({ challenger }) => {
+    socket.on("receiveChallenge", ({ challenger, timer }) => {
       setChallenger(challenger);
-      setTimer(10); // Reset timer when a new challenge comes in
+      setTimer(timer); // Reset timer when a new challenge comes in
     });
 
   }, [socket])
-
-
-// Handle timer countdown
-  useEffect(() => {
-    if (challenger && timer > 0) {
-      const countdown = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-
-      return () => clearInterval(countdown);
-    } else if (timer === 0) {
-      handleDecline();
-    }
-  }, [challenger, timer]);
-
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -145,51 +133,29 @@ const Home = () => {
       ) : (
         <div>
           <h1 className="text-3xl font-bold mb-6">Online Users</h1>
-          <OnlineUsers users={onlineUsers} onChallenge={handleChallenge} />
+          <OnlineUsers users={onlineUsers} setOpponant={setOpponant} setIsChallengePopUpOpen={setIsChallengePopUpOpen} />
         </div>
       )}
       {challenger && (
-        <ChallengePopup
+        <ChallengerPopup
           challenger={challenger}
+          timer={timer}
           onAccept={handleAccept}
           onDecline={handleDecline}
         />
       )}
+      <div className="relative">
+        {isChallengePopUpOpen && (
+          <ChallengePopup
+            onChallenge={handleChallenge}
+            username={opponant}
+            setIsOpen={setIsChallengePopUpOpen}
+          />
+        )}
+      </div>
     </div>
   )
  
-  // return (
-  //   <div>
-  //   <h2>Online Users</h2>
-  //   <ul>
-  //     {onlineUsers.map((username) => (
-  //       <li key={username}>
-  //         {username}{" "}
-  //         {username !== user.username && (
-  //           <button onClick={() => handleChallenge(username)}>
-  //             Challenge
-  //           </button>
-  //         )}
-  //       </li>
-  //     ))}
-  //   </ul>
-
-  //   {challenger && (
-  //     <div className="fixed top-0 left-0 w-full h-full bg-black opacity-50 flex justify-center items-center">
-  //       <div className="bg-white p-5 rounded-lg text-center shadow-md">
-  //         <h3>{challenger} has challenged you!</h3>
-  //         <p>Time remaining: {timer} seconds</p>
-  //         <button onClick={handleAccept} className="mr-2.5 px-2.5 py-5 bg-[#4CAF50] text-white border-o rounded-md cursor-pointer">
-  //           Accept
-  //         </button>
-  //         <button onClick={handleDecline} className="px-2.5 py-5 bg-[#f44336] text-white border-o rounded-md cursor-pointer">
-  //           Decline
-  //         </button>
-  //       </div>
-  //     </div>
-  //   )}
-  // </div>
-  // );
 };
 
 export default Home;

@@ -1,40 +1,75 @@
-type ChallengePopupPropsType = {
-    challenger: string, 
-    onAccept: () => void, 
-    onDecline: () => void
+interface TimerOption {
+  label: string;
+  value: string;
 }
 
-function ChallengePopup({ challenger, onAccept, onDecline }: ChallengePopupPropsType) {
+interface TimerCategory {
+  name: string;
+  options: TimerOption[];
+}
+
+const timerCategories: TimerCategory[] = [
+  {
+    name: "Bullet",
+    options: [
+      { label: "1 min", value: "1+0" },
+      { label: "1 | 1", value: "1+1" },
+      { label: "2 | 2", value: "2+2" },
+    ]
+  },
+  {
+    name: "Blitz",
+    options: [
+      { label: "3 min", value: "3+0" },
+      { label: "3 | 2", value: "3+2" },
+      { label: "5 min", value: "5+0" },
+    ]
+  },
+  {
+    name: "Rapid",
+    options: [
+      { label: "10 min", value: "10+0" },
+      { label: "15 | 10", value: "15+10" },
+      { label: "30 min", value: "30+0" },
+    ]
+  }
+];
+
+interface ChallengePopupProps {
+  onChallenge: (opponant: string, timer: string) => void;
+  username: string;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>,
+}
+
+export default function ChallengePopup({ onChallenge, username, setIsOpen }: ChallengePopupProps) {
+  const handleChallenge = (timer: string) => {
+    onChallenge(username, timer);
+    setIsOpen(false);
+  };
+
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" id="my-modal">
-      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div className="mt-3 text-center">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Chess Challenge</h3>
-          <div className="mt-2 px-7 py-3">
-            <p className="text-sm text-gray-500">
-              {challenger} has challenged you to a game of chess!
-            </p>
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1000]" onClick={() => setIsOpen(false)}>
+      <div className="bg-white p-5 rounded-lg max-w-sm w-full relative" onClick={(e) => e.stopPropagation()}>
+        <button className="absolute top-2.5 right-2.5 text-2xl bg-none border-none cursor-pointer" onClick={() => setIsOpen(false)}>
+          &times;
+        </button>
+        {timerCategories.map((category) => (
+          <div key={category.name} className="mb-4">
+            <h3 className='mb-2 font-semibold font-700'>{category.name}</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {category.options.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleChallenge(option.value)}
+                  className="p-2 bg-indigo-100 font-medium text-indigo-600 border border-indigo-300 rounded cursor-pointer hover:bg-indigo-200"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="items-center px-4 py-3">
-            <button
-              id="ok-btn"
-              className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-              onClick={onAccept}
-            >
-              Accept
-            </button>
-            <button
-              id="cancel-btn"
-              className="mt-3 px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
-              onClick={onDecline}
-            >
-              Decline
-            </button>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
 }
-
-export default ChallengePopup;
