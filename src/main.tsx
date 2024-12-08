@@ -6,7 +6,7 @@ import { socket, SocketContext } from './context/socket.ts'
 import { UserProvider } from './context/UserProvider.tsx'
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  <>
     <SocketContext.Provider value={socket}>
       <UserProvider>
         <BrowserRouter>
@@ -14,5 +14,5 @@ createRoot(document.getElementById('root')!).render(
         </BrowserRouter>
       </UserProvider>
     </SocketContext.Provider>
-  </StrictMode>,
+  </>
 )

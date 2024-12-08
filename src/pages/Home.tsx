@@ -24,11 +24,11 @@ const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
-  const handleAccept = async () => {
+  const handleAccept = async (timer: string) => {
     const response = await fetch("http://localhost:4000/api/game/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({opponant: user?.username, challenger}),
+      body: JSON.stringify({opponant: user?.username, challenger, timer}),
       credentials: 'include'
     });
 

@@ -1,7 +1,7 @@
 type ChallengePopupPropsType = {
     challenger: string, 
     timer: string,
-    onAccept: () => void, 
+    onAccept: (timer: string) => void, 
     onDecline: () => void
 }
 
@@ -20,7 +20,7 @@ function ChallengerPopup({ challenger, timer, onAccept, onDecline }: ChallengePo
             <button
               id="ok-btn"
               className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-              onClick={onAccept}
+              onClick={() => onAccept(timer)}
             >
               Accept
             </button>

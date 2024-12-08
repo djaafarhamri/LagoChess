@@ -5,6 +5,8 @@ import { useParams } from "react-router";
 import { useUser } from "../context/UserContext";
 import { SocketContext } from "../context/socket";
 import { BoardOrientation, PromotionPieceOption, Square } from "react-chessboard/dist/chessboard/types";
+import { GameType } from "../types/types";
+import Timer from "./Timer";
 
 const Game: React.FC = () => {
   const params = useParams();
@@ -12,12 +14,22 @@ const Game: React.FC = () => {
 
   const { user } = useUser()
 
-  const [chess, setChess] = useState<Chess>(new Chess());
-  // const [game, setGame] = useState();
+  const [chess] = useState<Chess>(new Chess());
+  const [game, setGame] = useState<GameType>();
   const [fen, setFen] = useState(chess.fen());
   const [orientation, setOrientation] = useState<BoardOrientation>("white"); // Manage turn logic
+  
+ const socket = useContext(SocketContext)
+ const [myTimerActive, setMyTimerActive] = useState(false);
+ const [opTimerActive, setOpTimerActive] = useState(false);
 
-  const socket = useContext(SocketContext)
+ const [myTimerTime, setMyTimerTime] = useState(300); // Example: 5 minutes in seconds
+ const [opTimerTime, setOpTimerTime] = useState(300); // Example: 5 minutes in seconds
+
+ const handleSwitchTimers = () => {
+   setMyTimerActive((prev) => !prev);
+   setOpTimerActive((prev) => !prev);
+ };
 
   useEffect(() => {
     // Join the game room
@@ -33,8 +45,14 @@ const Game: React.FC = () => {
       });
   
       const data = await response.json()
+      setGame(data?.game)
+      setMyTimerTime(data?.game?.timers.white)
+      setOpTimerTime(data?.game?.timers.white)
       if (data?.game.black?.username === user?.username) {
         setOrientation("black")
+        setOpTimerActive((prev) => !prev);
+      } else {
+        setMyTimerActive((prev) => !prev);
       }
     }
     getGame()
@@ -43,37 +61,41 @@ const Game: React.FC = () => {
   useEffect(() => {
   
     // Listen for moves from the server
-    socket.on("move-made", ({player, move}: {player: string, move: Move}) => {
+    socket.on("move-made", ({player, move, whiteTimerTime, blackTimerTime}: {player: string, move: Move, whiteTimerTime: number, blackTimerTime: number}) => {
       console.log(`Player ${player} made move :`, move);
-      setChess((prevChess) => {
-        const newChess = new Chess(prevChess.fen());
-        const result = newChess.move({ from: move.from, to: move.to, promotion: move.promotion });
+      if (chess.turn() !== orientation[0]) {
+        const result = chess.move({ from: move.from, to: move.to, promotion: move.promotion });
         if (result) {
-          setFen(newChess.fen());
+          setFen(chess.fen());
+          if (orientation === 'black') {
+            setMyTimerTime(blackTimerTime)
+            setOpTimerTime(whiteTimerTime)
+          } else {
+            setMyTimerTime(whiteTimerTime)
+            setOpTimerTime(blackTimerTime)
+          }
+          handleSwitchTimers()
         }
-        return newChess;
-      });
+      }
     });
-  }, [chess, gameId, socket]);
+  }, [chess, gameId, orientation, socket]);
 
   useEffect(() => {
     console.log(chess.ascii())
     console.log(chess.fen())
   }, [chess, fen]);
 
-
   function makeAMove(move: {from: string, to: string, promotion?: string}) {
     let result: Move | null = null;
-    setChess((prevChess) => {
-      const newChess = new Chess(prevChess.fen());
-      result = newChess.move(move);
-      if (result) {
-        setFen(newChess.fen());
-      }
-      return newChess;
-    });
+    result = chess.move(move);
     if (result) {
-      socket.emit("make-move", { gameId, player: user?.username, move }); // Send move to server
+      setFen(chess.fen());
+      handleSwitchTimers()
+    }
+    if (result) {
+      const blackTimerTime = orientation === 'black' ? myTimerTime:opTimerTime
+      const whiteTimerTime = orientation === 'white' ? myTimerTime:opTimerTime
+      socket.emit("make-move", { gameId, player: user?.username, move, whiteTimerTime, blackTimerTime }); // Send move to server
     }
     return result;
   }
@@ -103,22 +125,40 @@ const Game: React.FC = () => {
     }
     return false
   }
+  const handleMyTimeUpdate = (time: number) => {
+    setMyTimerTime(time); // Update my timer's state
+  };
 
+  const handleOpTimeUpdate = (time: number) => {
+    setOpTimerTime(time); // Update opponent's timer's state
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Chess Game</h1>
-      <div className="flex justify-center">
-        <Chessboard
-          id={gameId}
-          position={fen}
-          onPieceDrop={onDrop}
-          onPromotionPieceSelect={onPromo}
-          boardWidth={500}
-          boardOrientation={orientation}
-          arePiecesDraggable={chess.turn() === orientation[0]} // Disable drag when it's not the player's turn
-        />
-      </div>
+      {game && (
+        <div className="flex justify-center">
+          <Timer  currentTime={myTimerTime}
+                  isActive={myTimerActive}
+                  onTimeEnd={() => console.log("My Timer Ended!")}
+                  onTimeUpdate={handleMyTimeUpdate}
+                />
+          <Chessboard
+            id={gameId}
+            position={fen}
+            onPieceDrop={onDrop}
+            onPromotionPieceSelect={onPromo}
+            boardWidth={500}
+            boardOrientation={orientation}
+            arePiecesDraggable={chess.turn() === orientation[0]} // Disable drag when it's not the player's turn
+            />
+          <Timer  currentTime={opTimerTime}
+                  isActive={opTimerActive}
+                  onTimeEnd={() => console.log("My Timer Ended!")}
+                  onTimeUpdate={handleOpTimeUpdate}
+                  />
+        </div>
+      )}
     </div>
   );
 };
