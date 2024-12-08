@@ -5,13 +5,13 @@ module.exports = {
     // Create a new game
     createGame: async (req, res) => {
         try {
-            const { opponant, challenger } = req.body; // `playerId` is the white player
+            const { opponant, challenger, timer } = req.body; // `playerId` is the white player
             const white = await User.findOne({username: opponant})
             const black = await User.findOne({username: challenger})
             const newGame = new Game({
                 white,
                 black,
-                timers: { white: 300000, black: 300000 },
+                timers: { white: parseInt(timer?.split("+")[0])*60, black: parseInt(timer?.split("+")[0])*60 },
             });
             await newGame.save();
             res.status(201).json({ success: true, game: newGame });

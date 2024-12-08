@@ -37,7 +37,7 @@ const io = new Server(4001, {
 
 // Track active games
 let onlineUsers = {}; // Store online users with socket IDs
-
+ 
 
 // Handle socket connections
 io.on("connection", (socket) => {
@@ -84,9 +84,10 @@ io.on("connection", (socket) => {
     });
 
     // Handle moves
-    socket.on("make-move", ({ gameId, player, move }) => {
+    socket.on("make-move", ({ gameId, player, move, whiteTimerTime, blackTimerTime }) => {
         // Broadcast move to other players
-        socket.to(gameId).emit("move-made", { player, move });
+        console.log("timers : ", whiteTimerTime, blackTimerTime)
+        socket.to(gameId).emit("move-made", { player, move, whiteTimerTime, blackTimerTime });
 
         console.log(`Player ${player} made move in game ${gameId}:`, move);
     });

@@ -22,10 +22,11 @@ const gameSchema = new mongoose.Schema({
         from: { type: String, required: true },
         to: { type: String, required: true },
         promotion: { type: String },
-}],
+    }],
+    currTurn: { type: String, default: 'w' },
     timers: {
-        white: { type: Number, default: 300000 }, // in milliseconds (5 minutes)
-        black: { type: Number, default: 300000 },
+        white: { type: Number, default: 300 }, // in seconds (5 minutes)
+        black: { type: Number, default: 300 },
     },
     createdAt: { type: Date, default: Date.now },
 });
