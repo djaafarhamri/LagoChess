@@ -23,7 +23,15 @@ const Game: React.FC = () => {
   const [game, setGame] = useState<GameType>();
   const [fen, setFen] = useState(chess.fen());
   const [orientation, setOrientation] = useState<BoardOrientation>("white"); // Manage turn logic
-  const [moves, setMoves] = useState<{ move: string; fen: string }[]>([]);
+  const [moves, setMoves] = useState<
+    { move: string; fen: string; index: number }[]
+  >([
+    {
+      move: "",
+      fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      index: 0,
+    },
+  ]);
 
   const socket = useContext(SocketContext);
   const [myTimerActive, setMyTimerActive] = useState(false);
@@ -31,6 +39,7 @@ const Game: React.FC = () => {
 
   const [myTimerTime, setMyTimerTime] = useState(300); // Example: 5 minutes in seconds
   const [opTimerTime, setOpTimerTime] = useState(300); // Example: 5 minutes in seconds
+  const [moveIndex, setMoveIndex] = useState<number>(0);
 
   const handleSwitchTimers = () => {
     setMyTimerActive((prev) => !prev);
@@ -63,55 +72,67 @@ const Game: React.FC = () => {
     };
     getGame();
   }, [gameId, user?.username]);
-
   useEffect(() => {
-    // Listen for moves from the server
-    socket.on(
-      "move-made",
-      ({
-        player,
-        move,
-        whiteTimerTime,
-        blackTimerTime,
-      }: {
-        player: string;
-        move: Move;
-        whiteTimerTime: number;
-        blackTimerTime: number;
-      }) => {
-        console.log(`Player ${player} made move :`, move);
-        if (chess.turn() !== orientation[0]) {
-          const result = chess.move({
-            from: move.from,
-            to: move.to,
-            promotion: move.promotion,
-          });
-          if (result) {
-            setFen(chess.fen());
-            setMoves((prev) => [
-              ...prev,
-              { move: result.san, fen: chess.fen() },
-            ]);
-            if (orientation === "black") {
-              setMyTimerTime(blackTimerTime);
-              setOpTimerTime(whiteTimerTime);
-            } else {
-              setMyTimerTime(whiteTimerTime);
-              setOpTimerTime(blackTimerTime);
-            }
-            handleSwitchTimers();
+    const handleMoveMade = ({
+      player,
+      move,
+      whiteTimerTime,
+      blackTimerTime,
+    }: {
+      player: string;
+      move: Move;
+      whiteTimerTime: number;
+      blackTimerTime: number;
+    }) => {
+      console.log(`Player ${player} made move :`, move);
+      if (chess.turn() !== orientation[0]) {
+        const result = chess.move({
+          from: move.from,
+          to: move.to,
+          promotion: move.promotion,
+        });
+        if (result) {
+          setFen(chess.fen());
+          setMoves((prev) => [
+            ...prev,
+            { move: result.san, fen: chess.fen(), index: prev.length },
+          ]);
+          if (moveIndex + 1 === moves.length) {
+            setMoveIndex(moves[moves.length - 1].index + 1);
           }
+          if (orientation === "black") {
+            setMyTimerTime(blackTimerTime);
+            setOpTimerTime(whiteTimerTime);
+          } else {
+            setMyTimerTime(whiteTimerTime);
+            setOpTimerTime(blackTimerTime);
+          }
+          handleSwitchTimers();
         }
       }
-    );
-  }, [chess, gameId, orientation, socket]);
+    };
+
+    // Add the event listener
+    socket.on("move-made", handleMoveMade);
+
+    // Clean up the event listener on dependency change
+    return () => {
+      socket.off("move-made", handleMoveMade);
+    };
+  }, [chess, moveIndex, moves, orientation, socket]);
 
   function makeAMove(move: { from: string; to: string; promotion?: string }) {
     let result: Move | null = null;
     result = chess.move(move);
     if (result) {
       setFen(chess.fen());
-      setMoves((prev) => [...prev, { move: result.san, fen: chess.fen() }]);
+      setMoves((prev) => [
+        ...prev,
+        { move: result.san, fen: chess.fen(), index: prev.length },
+      ]);
+      if (moveIndex + 1 === moves.length) {
+        setMoveIndex(moves[moves.length - 1].index + 1);
+      }
       handleSwitchTimers();
     }
     if (result) {
@@ -181,7 +202,8 @@ const Game: React.FC = () => {
             boardWidth={640}
             boardOrientation={orientation}
             arePiecesDraggable={
-              chess.turn() === orientation[0] && fen === chess.fen()
+              chess.turn() === orientation[0] &&
+              moveIndex === moves[moves.length - 1].index
             } // Disable drag when it's not the player's turn
           />
         </div>
@@ -194,7 +216,13 @@ const Game: React.FC = () => {
           onTimeUpdate={handleOpTimeUpdate}
         />
         <div className="w-full  h-full">
-          <MoveHistory moves={moves} fen={fen} setFen={setFen} />
+          <MoveHistory
+            moves={moves}
+            fen={fen}
+            setFen={setFen}
+            moveIndex={moveIndex}
+            setMoveIndex={setMoveIndex}
+          />
         </div>
         <Timer
           currentTime={myTimerTime}

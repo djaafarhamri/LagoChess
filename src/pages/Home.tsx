@@ -7,30 +7,37 @@ import ChallengePopup from "../components/ChallengePopup";
 import { UserType } from "../types/types";
 import ChallengerPopup from "../components/ChallengerPopup";
 
-
 const Home = () => {
   const { user } = useUser();
-  const [onlineUsers, setOnlineUsers] = useState([]);
-  const [challenger, setChallenger] = useState(null);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const [challenger, setChallenger] = useState<string | null>(null);
   const [opponant, setOpponant] = useState<string>("");
   const [isChallengePopUpOpen, setIsChallengePopUpOpen] = useState(false);
   const [timer, setTimer] = useState("10 min");
   const navigate = useNavigate();
-  const socket = useContext(SocketContext)
+  const socket = useContext(SocketContext);
   const handleChallenge = (opponent: string, timer: string) => {
-    socket.emit("sendChallenge", { challenger: user?.username, opponent, timer });
+    socket.emit("sendChallenge", {
+      challenger: user?.username,
+      opponent,
+      timer,
+    });
   };
   const handleAccept = async (timer: string) => {
     const response = await fetch("http://localhost:4000/api/game/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({opponant: user?.username, challenger, timer}),
-      credentials: 'include'
+      body: JSON.stringify({ opponant: user?.username, challenger, timer }),
+      credentials: "include",
     });
 
-    const data = await response.json()
-    console.log(data?.game)
-    socket.emit("acceptChallenge", { challenger, opponent: user?.username, game: data.game._id });
+    const data = await response.json();
+    console.log(data?.game);
+    socket.emit("acceptChallenge", {
+      challenger,
+      opponent: user?.username,
+      game: data.game._id,
+    });
     setChallenger(null);
   };
 
@@ -38,26 +45,26 @@ const Home = () => {
     setChallenger(null);
   };
 
-  const { login } = useUser()
+  const { login } = useUser();
   useEffect(() => {
     const getUser = async (login: (userData: UserType) => void) => {
       try {
         const response = await fetch("http://localhost:4000/api/auth/getUser", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
-          credentials: 'include'
+          credentials: "include",
         });
         if (response.ok) {
-          const data = await response.json()
-          console.log(data?.user)
-          login(data.user)
+          const data = await response.json();
+          console.log(data?.user);
+          login(data.user);
         }
       } catch (err) {
-        console.log(err)
+        console.log(err);
       }
-    }
-    getUser(login)
-  }, [login])
+    };
+    getUser(login);
+  }, [login]);
 
   useEffect(() => {
     if (user) {
@@ -66,31 +73,40 @@ const Home = () => {
   }, [socket, user]);
 
   useEffect(() => {
-      // Listen for updated online user list
-      socket.on("onlineUsers", (users) => {
-        console.log("onlineUsers")
-        setOnlineUsers(users);
-      });
-  }, [socket])
-
-
-  useEffect(() => {
+    const handleOnlineUsers = (users: string[]) => {
+      setOnlineUsers(users);
+    }
     // Listen for updated online user list
-    socket.on("startGame", (game) => {
-      console.log("new Game")
-      navigate('/game/' + game.id)
-    });
-
-  }, [navigate, socket])
+    socket.on("onlineUsers", handleOnlineUsers);
+    return () => {
+      socket.off("onlineUsers", handleOnlineUsers);
+    };
+  }, [socket]);
 
   useEffect(() => {
-    // Listen for incoming challenges
-    socket.on("receiveChallenge", ({ challenger, timer }) => {
+    const handleStartGame = (game: {id: string}) => {
+      navigate("/game/" + game.id);
+    }
+    // Listen for updated online user list
+    socket.on("startGame", handleStartGame);
+
+    return () => {
+      socket.off("startGame", handleStartGame)
+    };
+  }, [navigate, socket]);
+
+  useEffect(() => {
+    const handleReceiveChallenge = ({ challenger, timer }: {challenger: string, timer: string}) => {
       setChallenger(challenger);
       setTimer(timer); // Reset timer when a new challenge comes in
-    });
+    }
+    // Listen for incoming challenges
+    socket.on("receiveChallenge", handleReceiveChallenge);
 
-  }, [socket])
+    return () => {
+      socket.off("receiveChallenge", handleReceiveChallenge)
+    }
+  }, [socket]);
 
   return (
     <div className="container flex-col flex items-center mx-auto px-4 py-8">
@@ -121,8 +137,7 @@ const Home = () => {
         )}
       </div>
     </div>
-  )
- 
+  );
 };
 
 export default Home;
