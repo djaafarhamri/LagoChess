@@ -6,7 +6,7 @@ import { useUser } from "../context/UserContext";
 import { SocketContext } from "../context/socket";
 import { BoardOrientation, PromotionPieceOption, Square } from "react-chessboard/dist/chessboard/types";
 import { GameType } from "../types/types";
-import Timer from "./Timer";
+import Timer from "../components/Timer";
 
 const Game: React.FC = () => {
   const params = useParams();
