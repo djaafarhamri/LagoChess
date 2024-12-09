@@ -1,45 +1,41 @@
 import { useUser } from "../context/UserContext";
 
 type Props = {
-    users: string[],
-    setOpponant: React.Dispatch<React.SetStateAction<string>>,
-    setIsChallengePopUpOpen: React.Dispatch<React.SetStateAction<boolean>>
-}
+  users: string[];
+  setOpponant: React.Dispatch<React.SetStateAction<string>>;
+  setIsChallengePopUpOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
 
 function OnlineUsers({ users, setOpponant, setIsChallengePopUpOpen }: Props) {
-  
-  const { user } = useUser()
-  
+  const { user } = useUser();
+
   return (
-    <div className="shadow overflow-hidden sm:rounded-md">
-      <ul className="divide-y divide-gray-200">
-        {users.map((op) => { 
-          if (user?.username !== op) {
-            return (
-              <li key={op}>
-                <div className="px-4 py-4 flex items-center sm:px-6">
-                  <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-indigo-600 truncate">{op}</p>
-                    </div>
-                  </div>
-                  <div className="ml-5 flex-shrink-0">
-                    <button
-                      onClick={() => {
-                        setIsChallengePopUpOpen(true)
-                        setOpponant(op)
-                      }}
-                      className="font-medium text-indigo-600 hover:text-indigo-500"
-                    >
-                      Challenge
-                    </button>
-                  </div>
-                </div>
+    <div className="overflow-hidden sm:rounded-md">
+      <h2 className="text-xl text-center font-bold text-yellow-400 p-4">
+        Online Users
+      </h2>
+      {users.length === 0 ? (
+        <p className="text-center text-gray-300 py-4">No users are online</p>
+      ) : (
+        <ul className="divide-y divide-gray-600">
+          {users.map((op) =>
+            user?.username !== op ? (
+              <li key={op} className="flex items-center px-4 py-4 hover:bg-[#4E4D4D]">
+                <p className="text-sm font-medium text-yellow-400 truncate flex-1">{op}</p>
+                <button
+                  onClick={() => {
+                    setIsChallengePopUpOpen(true);
+                    setOpponant(op);
+                  }}
+                  className="ml-5 px-3 py-1 bg-yellow-500 text-black font-semibold rounded hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                >
+                  Challenge
+                </button>
               </li>
-            )
-          }
-        })}
-      </ul>
+            ) : null
+          )}
+        </ul>
+      )}
     </div>
   );
 }

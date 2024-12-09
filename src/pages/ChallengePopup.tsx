@@ -48,20 +48,29 @@ export default function ChallengePopup({ onChallenge, username, setIsOpen }: Cha
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1000]" onClick={() => setIsOpen(false)}>
-      <div className="bg-white p-5 rounded-lg max-w-sm w-full relative" onClick={(e) => e.stopPropagation()}>
-        <button className="absolute top-2.5 right-2.5 text-2xl bg-none border-none cursor-pointer" onClick={() => setIsOpen(false)}>
+    <div
+      className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1000]"
+      onClick={() => setIsOpen(false)}
+    >
+      <div
+        className="bg-[#454545] p-6 rounded-lg max-w-md w-full relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          className="absolute top-2 right-2 text-2xl text-gray-300 hover:text-gray-100 focus:outline-none"
+          onClick={() => setIsOpen(false)}
+        >
           &times;
         </button>
         {timerCategories.map((category) => (
-          <div key={category.name} className="mb-4">
-            <h3 className='mb-2 font-semibold font-700'>{category.name}</h3>
-            <div className="grid grid-cols-3 gap-2">
+          <div key={category.name} className="mb-6">
+            <h3 className="mb-3 text-lg font-semibold text-yellow-400">{category.name}</h3>
+            <div className="grid grid-cols-3 gap-3">
               {category.options.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => handleChallenge(option.value)}
-                  className="p-2 bg-indigo-100 font-medium text-indigo-600 border border-indigo-300 rounded cursor-pointer hover:bg-indigo-200"
+                  className="p-2 bg-yellow-500 text-gray-900 font-semibold rounded-md hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-300"
                 >
                   {option.label}
                 </button>
@@ -71,5 +80,6 @@ export default function ChallengePopup({ onChallenge, username, setIsOpen }: Cha
         ))}
       </div>
     </div>
+
   );
 }

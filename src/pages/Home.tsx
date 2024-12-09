@@ -93,10 +93,15 @@ const Home = () => {
   }, [socket])
 
   return (
-    <div className="container mx-auto px-4 py-8">
-        <div>
-          <OnlineUsers users={onlineUsers} setOpponant={setOpponant} setIsChallengePopUpOpen={setIsChallengePopUpOpen} />
-        </div>
+    <div className="container flex-col flex items-center mx-auto px-4 py-8">
+      <div className="bg-[#454545] w-full max-w-[640px] h-[640px] p-12 rounded-lg shadow-xl">
+        <OnlineUsers
+          users={onlineUsers}
+          setOpponant={setOpponant}
+          setIsChallengePopUpOpen={setIsChallengePopUpOpen}
+        />
+      </div>
+
       {/* )} */}
       {challenger && (
         <ChallengerPopup

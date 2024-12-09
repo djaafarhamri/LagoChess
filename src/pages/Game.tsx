@@ -134,31 +134,41 @@ const Game: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Chess Game</h1>
+    <div className="container flex justify-around mx-auto px-4 py-8">
+      <h2 className="text-xl w-full text-center font-bold text-yellow-400 p-4">
+        Chat Room
+      </h2>
       {game && (
         <div className="flex justify-center">
-          <Timer  currentTime={myTimerTime}
-                  isActive={myTimerActive}
-                  onTimeEnd={() => console.log("My Timer Ended!")}
-                  onTimeUpdate={handleMyTimeUpdate}
-                />
           <Chessboard
             id={gameId}
             position={fen}
             onPieceDrop={onDrop}
             onPromotionPieceSelect={onPromo}
-            boardWidth={500}
+            boardWidth={640}
             boardOrientation={orientation}
             arePiecesDraggable={chess.turn() === orientation[0]} // Disable drag when it's not the player's turn
             />
-          <Timer  currentTime={opTimerTime}
-                  isActive={opTimerActive}
-                  onTimeEnd={() => console.log("My Timer Ended!")}
-                  onTimeUpdate={handleOpTimeUpdate}
-                  />
+          
         </div>
       )}
+      <div className="flex flex-col w-full mr-auto">
+        <Timer  
+          currentTime={myTimerTime}
+          isActive={myTimerActive}
+          onTimeEnd={() => console.log("My Timer Ended!")}
+          onTimeUpdate={handleMyTimeUpdate}
+        />
+        <div className="w-full  h-full">
+          
+         </div>
+        <Timer
+          currentTime={opTimerTime}
+          isActive={opTimerActive}
+          onTimeEnd={() => console.log("My Timer Ended!")}
+          onTimeUpdate={handleOpTimeUpdate}
+        />
+      </div>
     </div>
   );
 };

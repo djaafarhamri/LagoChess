@@ -59,8 +59,8 @@ const Timer = ({ currentTime, isActive, onTimeEnd, onTimeUpdate }: TimerProps) =
   }, [isActive, onTimeEnd, onTimeUpdate]);
 
   return (
-    <div>
-      <h1>
+    <div className="">
+      <h1 className="max-w-fit p-3 text-5xl font-medium text-gray-200">
         {timeLeft.minutes < 10 ? `0${timeLeft.minutes}` : timeLeft.minutes}:
         {timeLeft.seconds < 10 ? `0${timeLeft.seconds}` : timeLeft.seconds}
       </h1>
