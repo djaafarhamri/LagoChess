@@ -11,7 +11,7 @@ function OnlineUsers({ users, setOpponant, setIsChallengePopUpOpen }: Props) {
   const { user } = useUser()
   
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md">
+    <div className="shadow overflow-hidden sm:rounded-md">
       <ul className="divide-y divide-gray-200">
         {users.map((op) => { 
           if (user?.username !== op) {

@@ -2,12 +2,11 @@ import { useContext, useEffect, useState } from "react";
 import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router";
 import { SocketContext } from "../context/socket";
-import Login from "./Login";
-import Signup from "./Signup";
 import OnlineUsers from "./OnlineUsers";
 import ChallengePopup from "./ChallengePopup";
 import { UserType } from "../types/types";
 import ChallengerPopup from "./ChallengerPopup";
+
 
 const Home = () => {
   const { user } = useUser();
@@ -21,9 +20,6 @@ const Home = () => {
   const handleChallenge = (opponent: string, timer: string) => {
     socket.emit("sendChallenge", { challenger: user?.username, opponent, timer });
   };
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
-
   const handleAccept = async (timer: string) => {
     const response = await fetch("http://localhost:4000/api/game/create", {
       method: "POST",
@@ -52,7 +48,6 @@ const Home = () => {
           credentials: 'include'
         });
         if (response.ok) {
-          setIsLoggedIn(true)
           const data = await response.json()
           console.log(data?.user)
           login(data.user)
@@ -99,43 +94,10 @@ const Home = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {!isLoggedIn ? (
-        <div className="max-w-md mx-auto">
-          <h1 className="text-3xl font-bold mb-6 text-center">Chess Game</h1>
-          {showRegister ? (
-            <>
-              <Signup />
-              <p className="mt-4 text-center">
-                Already have an account?{' '}
-                <button
-                  onClick={() => setShowRegister(false)}
-                  className="text-indigo-600 hover:text-indigo-500"
-                >
-                  Login
-                </button>
-              </p>
-            </>
-          ) : (
-            <>
-              <Login setIsLoggedIn={setIsLoggedIn} />
-              <p className="mt-4 text-center">
-                Don't have an account?{' '}
-                <button
-                  onClick={() => setShowRegister(true)}
-                  className="text-indigo-600 hover:text-indigo-500"
-                >
-                  Register
-                </button>
-              </p>
-            </>
-          )}
-        </div>
-      ) : (
         <div>
-          <h1 className="text-3xl font-bold mb-6">Online Users</h1>
           <OnlineUsers users={onlineUsers} setOpponant={setOpponant} setIsChallengePopUpOpen={setIsChallengePopUpOpen} />
         </div>
-      )}
+      {/* )} */}
       {challenger && (
         <ChallengerPopup
           challenger={challenger}
