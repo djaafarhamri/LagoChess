@@ -28,7 +28,6 @@ const MoveHistory = ({
   return (
     <div
       className="text-white"
-      style={{ paddingRight: "10px" }} // Avoids scrollbar overlap with content
     >
       <div className="grid grid-cols-5">
         {/* Numbering of moves */}

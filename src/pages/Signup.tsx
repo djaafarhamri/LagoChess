@@ -48,7 +48,7 @@ const SignUp = () => {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block bg-[#454545] w-full px-3 py-2 bg-gray-800 border border-2 border-white-600 rounded-md text-sm text-white placeholder-gray-400
+                className="mt-1 block bg-[#454545] w-full px-3 py-2 border-2 border-white-600 rounded-md text-sm text-white placeholder-gray-400
                            focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 required
               />
@@ -62,7 +62,7 @@ const SignUp = () => {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 block bg-[#454545] w-full px-3 py-2 bg-gray-800 border border-2 border-white-600 rounded-md text-sm text-white placeholder-gray-400
+                className="mt-1 block bg-[#454545] w-full px-3 py-2 border-2 border-white-600 rounded-md text-sm text-white placeholder-gray-400
                            focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 required
               />
@@ -76,7 +76,7 @@ const SignUp = () => {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block bg-[#454545] w-full px-3 py-2 bg-gray-800 border border-2 border-white-600 rounded-md text-sm text-white placeholder-gray-400
+                className="mt-1 block bg-[#454545] w-full px-3 py-2 border-2 border-white-600 rounded-md text-sm text-white placeholder-gray-400
                            focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 required
               />

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, Move } from "chess.js";
 import { useParams } from "react-router";
@@ -12,6 +12,16 @@ import {
 import { GameType } from "../types/types";
 import Timer from "../components/Timer";
 import MoveHistory from "../components/Moves";
+import WhitePawn from "../assets/WhitePawn";
+import BlackPawn from "../assets/BlackPawn";
+import BlackKnight from "../assets/BlackKnight";
+import BlackBishop from "../assets/BlackBishop";
+import WhiteQueen from "../assets/WhiteQueen";
+import WhiteRook from "../assets/WhiteRook";
+import WhiteBishop from "../assets/WhiteBishop";
+import WhiteKnight from "../assets/WhiteKnight";
+import BlackRook from "../assets/BlackRook";
+import BlackQueen from "../assets/BlackQueen";
 
 const Game: React.FC = () => {
   const params = useParams();
@@ -32,6 +42,73 @@ const Game: React.FC = () => {
       index: 0,
     },
   ]);
+  const [blackCaptures, setBlackCaptures] = useState<string[]>([]);
+  const [whiteCaptures, setWhiteCaptures] = useState<string[]>([]);
+
+  const whitePieceIcons: { [key: string]: React.ReactElement } = {
+    p: <WhitePawn />,
+    n: <WhiteKnight />,
+    b: <WhiteBishop />,
+    r: <WhiteRook />,
+    q: <WhiteQueen />,
+  };
+
+  const blackPieceIcons: { [key: string]: React.ReactElement } = {
+    p: <BlackPawn />,
+    n: <BlackKnight />,
+    b: <BlackBishop />,
+    r: <BlackRook />,
+    q: <BlackQueen />,
+  };
+
+  interface CapturesProps {
+    whiteCaptures: string[]; // Array of captured pieces for white
+    blackCaptures: string[]; // Array of captured pieces for black
+    isWhite: boolean; // Indicates whether the current player is white
+  }
+  // Helper function to count the occurrences of each piece
+  const countPieces = (captures: string[]) => {
+    const counts: { [key: string]: number } = {};
+    for (const piece of captures) {
+      counts[piece] = (counts[piece] || 0) + 1;
+    }
+    return counts;
+  };
+
+  const Captures: React.FC<CapturesProps> = ({
+    whiteCaptures,
+    blackCaptures,
+    isWhite,
+  }) => {
+    const pieceIcons = isWhite ? whitePieceIcons : blackPieceIcons;
+    const captures = isWhite ? whiteCaptures : blackCaptures;
+
+    const pieceCounts = countPieces(sortPieces(captures));
+
+    return (
+      <div className="flex">
+        {Object.entries(pieceCounts).map(([piece, count]) => (
+          <div key={piece} className="flex items-center">
+            {pieceIcons[piece]}
+            {count > 1 && (
+              <span className={`text-${isWhite ? "white" : "black"} ml-[-6px]`}>
+                x{count}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const sortPieces = useCallback((pieces: string[]) => {
+    const pieceOrder = ["q", "r", "b", "n", "p"];
+    console.log(pieces);
+    console.log(
+      pieces.sort((a, b) => pieceOrder.indexOf(a) - pieceOrder.indexOf(b))
+    );
+    return pieces.sort((a, b) => pieceOrder.indexOf(a) - pieceOrder.indexOf(b));
+  }, []);
 
   const socket = useContext(SocketContext);
   const [myTimerActive, setMyTimerActive] = useState(false);
@@ -72,6 +149,11 @@ const Game: React.FC = () => {
     };
     getGame();
   }, [gameId, user?.username]);
+
+  const [promotedPieces, setPromotedPieces] = useState<
+    { color: string; piece: string | undefined }[]
+  >([]); // Store promoted pieces
+
   useEffect(() => {
     const handleMoveMade = ({
       player,
@@ -108,6 +190,55 @@ const Game: React.FC = () => {
             setOpTimerTime(blackTimerTime);
           }
           handleSwitchTimers();
+          // Check for promotion
+          if (result.promotion) {
+            setPromotedPieces((prev) => [
+              ...prev,
+              { color: result.color, piece: result.promotion },
+            ]); // Track promoted square
+          }
+          if (result.captured) {
+            const wasPromotedPiece = promotedPieces.some(
+              (promotedPiece) =>
+                promotedPiece.color !== result.color &&
+                promotedPiece.piece === result.captured
+            );
+
+            console.log(
+              wasPromotedPiece
+                ? `Captured a promoted piece (${wasPromotedPiece})`
+                : "Captured a regular piece"
+            );
+            const capturedPiece = wasPromotedPiece ? "p" : result.captured; // Show as pawn if promoted
+            if (wasPromotedPiece) {
+              setPromotedPieces(
+                (prev: { color: string; piece: string | undefined }[]) => {
+                  const indexToRemove = prev.findIndex(
+                    (promoted: { color: string; piece: string | undefined }) =>
+                      promoted.color !== result.color &&
+                      promoted.piece === result.captured
+                  );
+
+                  if (indexToRemove !== -1) {
+                    return [
+                      ...prev.slice(0, indexToRemove),
+                      ...prev.slice(indexToRemove + 1),
+                    ];
+                  }
+
+                  return prev; // No match found, return the original array
+                }
+              );
+            }
+
+            if (result.color === "w") {
+              console.log(result.captured);
+              setBlackCaptures((prev) => [...prev, capturedPiece]);
+            } else {
+              console.log(result.captured);
+              setWhiteCaptures((prev) => [...prev, capturedPiece]);
+            }
+          }
         }
       }
     };
@@ -119,7 +250,20 @@ const Game: React.FC = () => {
     return () => {
       socket.off("move-made", handleMoveMade);
     };
-  }, [chess, moveIndex, moves, orientation, socket]);
+  }, [
+    blackCaptures,
+    chess,
+    moveIndex,
+    moves,
+    orientation,
+    promotedPieces,
+    socket,
+    whiteCaptures,
+  ]);
+
+  useEffect(() => {
+    console.log("promoted pieces", promotedPieces);
+  }, [promotedPieces]);
 
   function makeAMove(move: { from: string; to: string; promotion?: string }) {
     let result: Move | null = null;
@@ -134,6 +278,57 @@ const Game: React.FC = () => {
         setMoveIndex(moves[moves.length - 1].index + 1);
       }
       handleSwitchTimers();
+      // Check for promotion
+      if (result.promotion) {
+        setPromotedPieces((prev) => [
+          ...prev,
+          { color: result.color, piece: result.promotion },
+        ]); // Track promoted square
+      }
+      if (result.captured) {
+        const wasPromotedPiece = promotedPieces.some(
+          (promotedPiece) =>
+            promotedPiece.color !== result.color &&
+            promotedPiece.piece === result.captured
+        );
+        console.log("nigga : ", result.color, result.captured);
+        const capturedPiece = wasPromotedPiece ? "p" : result.captured; // Show as pawn if promoted
+        if (wasPromotedPiece) {
+          console.log("was promoted")
+          console.log("was promoted promoted pieces: ", promotedPieces)
+          console.log("was promoted result: ", result)
+          setPromotedPieces(
+            (prev: { color: string; piece: string | undefined }[]) => {
+              const indexToRemove = prev.findIndex(
+                (promoted: { color: string; piece: string | undefined }) =>
+                  promoted.color !== result.color &&
+                  promoted.piece === result.captured
+              );
+
+              if (indexToRemove !== -1) {
+                console.log("gla3nah: ", [
+                  ...prev.slice(0, indexToRemove),
+                  ...prev.slice(indexToRemove + 1),
+                ])
+                return [
+                  ...prev.slice(0, indexToRemove),
+                  ...prev.slice(indexToRemove + 1),
+                ];
+              }
+              console.log("magla3nahch: ", prev)
+              return prev; // No match found, return the original array
+            }
+          );
+        }
+
+        if (result.color === "w") {
+          console.log(result.captured);
+          setBlackCaptures((prev) => [...prev, capturedPiece]);
+        } else {
+          console.log(result.captured);
+          setWhiteCaptures((prev) => [...prev, capturedPiece]);
+        }
+      }
     }
     if (result) {
       const blackTimerTime =
@@ -150,7 +345,6 @@ const Game: React.FC = () => {
     }
     return result;
   }
-
   function onDrop(sourceSquare: Square, targetSquare: Square) {
     const move = makeAMove({
       from: sourceSquare,
@@ -205,16 +399,46 @@ const Game: React.FC = () => {
               chess.turn() === orientation[0] &&
               moveIndex === moves[moves.length - 1].index
             } // Disable drag when it's not the player's turn
+            animationDuration={0}
           />
         </div>
       )}
       <div className="flex flex-col w-full mr-auto">
-        <Timer
+        {/* <Timer
           currentTime={opTimerTime}
           isActive={opTimerActive}
           onTimeEnd={() => console.log("My Timer Ended!")}
           onTimeUpdate={handleOpTimeUpdate}
-        />
+        /> */}
+        {orientation !== "white" ? (
+          <>
+            <div className="flex w-full h-10 bg-[#454545]">
+              <Captures
+                whiteCaptures={whiteCaptures}
+                blackCaptures={blackCaptures}
+                isWhite={false}
+              />
+              <div className="h-10 w-10 bg-white ml-auto"></div>
+            </div>
+            <div className="text-xl  font-bold text-yellow-400 py-2 px-8 bg-[#313131]">
+              <h2>{typeof game?.white !== "string" && game?.white.username}</h2>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex w-full bg-[#454545]">
+              <Captures
+                whiteCaptures={whiteCaptures}
+                blackCaptures={blackCaptures}
+                isWhite={true}
+              />
+              <div className="h-10 w-10 bg-black ml-auto"></div>
+            </div>
+            <div className="text-xl  font-bold text-yellow-400 py-2 px-8 bg-[#313131]">
+              <h2>{typeof game?.black !== "string" && game?.black.username}</h2>
+            </div>
+          </>
+        )}
         <div className="w-full  h-full">
           <MoveHistory
             moves={moves}
@@ -224,12 +448,41 @@ const Game: React.FC = () => {
             setMoveIndex={setMoveIndex}
           />
         </div>
-        <Timer
+        {orientation === "white" ? (
+          <>
+            <div className="flex w-full bg-[#454545]">
+              <Captures
+                whiteCaptures={whiteCaptures}
+                blackCaptures={blackCaptures}
+                isWhite={false}
+              />
+              <div className="h-10 w-10 bg-white ml-auto"></div>
+            </div>
+            <div className="text-xl  font-bold text-yellow-400 py-2 px-8 bg-[#313131]">
+              <h2>{typeof game?.white !== "string" && game?.white.username}</h2>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex w-full bg-[#454545]">
+              <Captures
+                whiteCaptures={whiteCaptures}
+                blackCaptures={blackCaptures}
+                isWhite={true}
+              />
+              <div className="h-10 w-10 bg-black ml-auto"></div>
+            </div>
+            <div className="text-xl  font-bold text-yellow-400 py-2 px-8 bg-[#313131]">
+              <h2>{typeof game?.black !== "string" && game?.black.username}</h2>
+            </div>
+          </>
+        )}
+        {/* <Timer
           currentTime={myTimerTime}
           isActive={myTimerActive}
           onTimeEnd={() => console.log("My Timer Ended!")}
           onTimeUpdate={handleMyTimeUpdate}
-        />
+        /> */}
       </div>
     </div>
   );
