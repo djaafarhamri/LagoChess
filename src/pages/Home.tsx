@@ -2,10 +2,10 @@ import { useContext, useEffect, useState } from "react";
 import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router";
 import { SocketContext } from "../context/socket";
-import OnlineUsers from "../components/OnlineUsers";
 import ChallengePopup from "../components/home/ChallengePopup";
 import { UserType } from "../types/types";
 import ChallengerPopup from "../components/home/ChallengerPopup";
+import OnlineUsers from "../components/home/OnlineUsers";
 
 const Home = () => {
   const { user } = useUser();
@@ -32,7 +32,6 @@ const Home = () => {
     });
 
     const data = await response.json();
-    console.log(data?.game);
     socket.emit("acceptChallenge", {
       challenger,
       opponent: user?.username,
@@ -56,7 +55,6 @@ const Home = () => {
         });
         if (response.ok) {
           const data = await response.json();
-          console.log(data?.user);
           login(data.user);
         }
       } catch (err) {

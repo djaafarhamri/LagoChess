@@ -28,7 +28,6 @@ const SignUp = () => {
         return;
       }
       const data = await response.json()
-      console.log(data?.user)
       login(data.user)
     } catch (err) {
       console.log(err)
