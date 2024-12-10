@@ -3,9 +3,9 @@ import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router";
 import { SocketContext } from "../context/socket";
 import OnlineUsers from "../components/OnlineUsers";
-import ChallengePopup from "../components/ChallengePopup";
+import ChallengePopup from "../components/home/ChallengePopup";
 import { UserType } from "../types/types";
-import ChallengerPopup from "../components/ChallengerPopup";
+import ChallengerPopup from "../components/home/ChallengerPopup";
 
 const Home = () => {
   const { user } = useUser();

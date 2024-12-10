@@ -10,8 +10,8 @@ import {
   Square,
 } from "react-chessboard/dist/chessboard/types";
 import { GameType } from "../types/types";
-import Timer from "../components/Timer";
-import MoveHistory from "../components/Moves";
+import Timer from "../components/game/Timer";
+import MoveHistory from "../components/game/Moves";
 import WhitePawn from "../assets/WhitePawn";
 import BlackPawn from "../assets/BlackPawn";
 import BlackKnight from "../assets/BlackKnight";
@@ -432,12 +432,12 @@ const Game: React.FC = () => {
         </div>
       )}
       <div className="flex flex-col w-full mr-auto">
-        {/* <Timer
+        <Timer
           currentTime={opTimerTime}
           isActive={opTimerActive}
           onTimeEnd={() => console.log("My Timer Ended!")}
           onTimeUpdate={handleOpTimeUpdate}
-        /> */}
+        />
         {orientation !== "white" ? (
           <>
             <div className="flex w-full h-10 bg-[#454545]">
@@ -517,12 +517,12 @@ const Game: React.FC = () => {
             </div>
           </>
         )}
-        {/* <Timer
+        <Timer
           currentTime={myTimerTime}
           isActive={myTimerActive}
           onTimeEnd={() => console.log("My Timer Ended!")}
           onTimeUpdate={handleMyTimeUpdate}
-        /> */}
+        />
       </div>
     </div>
   );
