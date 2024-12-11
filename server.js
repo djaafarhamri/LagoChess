@@ -10,6 +10,8 @@ const { Server } = require("socket.io");
 const authRoutes = require("./routes/authRoutes");
 const gameRoutes = require("./routes/gameRoutes");
 const mongoose = require("mongoose");
+const { makeMove } = require("./controllers/gameController");
+const { sendMessage } = require("./controllers/chatController");
 const PORT = process.env.PORT || 4000;
 // connect database
 
@@ -86,11 +88,19 @@ io.on("connection", (socket) => {
     // Handle moves
     socket.on("make-move", ({ gameId, player, move, whiteTimerTime, blackTimerTime }) => {
         // Broadcast move to other players
-        console.log("timers : ", whiteTimerTime, blackTimerTime)
         socket.to(gameId).emit("move-made", { player, move, whiteTimerTime, blackTimerTime });
 
         console.log(`Player ${player} made move in game ${gameId}:`, move);
+    
+        makeMove(gameId, move)
     });
+
+    socket.on("send-message", ({gameId, content, sender}) => {
+        console.log("send")
+        socket.to(gameId).emit("message-received", { content, sender, sentAt: Date.now });
+        sendMessage(gameId, content, sender)
+    })
+
     // Handle user disconnect
     socket.on("disconnect", () => {
         delete onlineUsers[socket.id];

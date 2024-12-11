@@ -42,25 +42,18 @@ module.exports = {
     },
 
     // Make a move
-    makeMove: async (req, res) => {
+    makeMove: async (gameId, move) => {
         try {
-            const { gameId } = req.params;
-            const { playerId, move } = req.body;
             const game = await Game.findById(gameId);
             if (!game) {
                 return res.status(404).json({ success: false, message: "Game not found" });
             }
-            if (String(game.currentTurn) !== playerId) {
-                return res.status(400).json({ success: false, message: "Not your turn" });
-            }
-
             // Update moves and turn
-            game.moves.push({ playerId, move });
-            game.currentTurn = game.players.find((id) => id.toString() !== playerId);
+            game.moves.push(move );
             await game.save();
-            res.status(200).json({ success: true, game });
+            return ({ success: true, game });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            return ({ success: false, message: error.message });
         }
     },
 
