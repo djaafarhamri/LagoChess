@@ -44,10 +44,11 @@ const gameSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Chat",
   },
+  lastMoveTimestamp: { type: Date, default: Date.now }, // New field
   currTurn: { type: String, default: "w" },
   timers: {
-    white: { type: Number, default: 300 }, // in seconds (5 minutes)
-    black: { type: Number, default: 300 },
+    white: { type: Number, default: 300000 }, // in miliseconds (5 minutes)
+    black: { type: Number, default: 300000 },
   },
   createdAt: { type: Date, default: Date.now },
 });
