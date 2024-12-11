@@ -48,14 +48,44 @@ const Game: React.FC = () => {
     setOpTimerActive((prev) => !prev);
   };
 
+  const bufferTime = 200
+
   useEffect(() => {
     // Join the game room
-    socket.emit("join-game", { gameId });
+    socket.emit("join-game", { gameId, player: user?.username });
+    const handleBeforeUnload = () => {
+      socket.emit("leave-game", { gameId, player: user?.username });
+    };
+
+    // Add listener for tab close or page unload
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      socket.emit("leave-game", { gameId });
+      // Cleanup for React component unmount
+      socket.emit("leave-game", { gameId, player: user?.username });
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [gameId, socket]);
+  }, [gameId, socket, user?.username]);
+ 
+  useEffect(() => {
+    socket.on("timerSync", ({ timers, white, black }) => {
+  
+      // Directly use the timers from the database without subtracting elapsed time
+      const adjustedWhiteTime = timers.white + bufferTime / 1000;
+      const adjustedBlackTime = timers.black + bufferTime / 1000;
+  
+      // Update the timers based on the current orientation
+      if (user?.username === white) {
+        setMyTimerTime(Math.round(adjustedWhiteTime));
+        setOpTimerTime(Math.round(adjustedBlackTime));
+      } else if (user?.username === black) {
+        setOpTimerTime(Math.round(adjustedWhiteTime));
+        setMyTimerTime(Math.round(adjustedBlackTime));
+      }
+    });
+  }, [socket, user?.username]);
+  
+
 
   function getTurnFromFEN(fen: string) {
     // Split the FEN string into its components
@@ -80,8 +110,6 @@ const Game: React.FC = () => {
         setMoves(data?.game.moves);
         setMoveIndex(data?.game.moves[data?.game.moves.length - 1].index);
       }
-      setMyTimerTime(data?.game?.timers.white);
-      setOpTimerTime(data?.game?.timers.white);
       const turn = getTurnFromFEN(data?.game.fen);
       if (data?.game.black?.username === user?.username) {
         setOrientation("black");
@@ -111,12 +139,29 @@ const Game: React.FC = () => {
     { color: string; piece: string | undefined }[]
   >([]); // Store promoted pieces
 
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Tab became active, sync the timer
+        socket.emit("requestTimerSync", { gameId });
+      }
+    };
+
+    // Listen for tab focus change
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [socket, gameId]);
+
+
   const handleMove = useCallback(
     ({
       player,
       move,
-      whiteTimerTime,
-      blackTimerTime,
       isLocalMove = false,
     }: {
       player: string | undefined;
@@ -139,14 +184,6 @@ const Game: React.FC = () => {
         setMoveIndex(moves[moves.length - 1].index + 1);
       }
 
-      // Handle timer updates
-      if (orientation === "black") {
-        setMyTimerTime(blackTimerTime ?? myTimerTime);
-        setOpTimerTime(whiteTimerTime ?? opTimerTime);
-      } else {
-        setMyTimerTime(whiteTimerTime ?? myTimerTime);
-        setOpTimerTime(blackTimerTime ?? opTimerTime);
-      }
       handleSwitchTimers();
 
       // Handle promotions
@@ -199,24 +236,12 @@ const Game: React.FC = () => {
           fen: chess.fen(),
           san: result.san,
           index: moves.length - 1,
-          whiteTimerTime,
-          blackTimerTime,
         });
       }
 
       return result;
     },
-    [
-      chess,
-      gameId,
-      moveIndex,
-      moves,
-      myTimerTime,
-      opTimerTime,
-      orientation,
-      promotedPieces,
-      socket,
-    ]
+    [chess, gameId, moveIndex, moves, promotedPieces, socket]
   );
 
   useEffect(() => {
@@ -233,21 +258,16 @@ const Game: React.FC = () => {
     handleMove,
     moveIndex,
     moves,
-    orientation,
     promotedPieces,
     socket,
     whiteCaptures,
   ]);
 
   function onDrop(sourceSquare: Square, targetSquare: Square) {
-    const blackTimerTime = orientation === "black" ? myTimerTime : opTimerTime;
-    const whiteTimerTime = orientation === "white" ? myTimerTime : opTimerTime;
     const move = handleMove({
       player: user?.username,
       isLocalMove: true,
       move: { from: sourceSquare, to: targetSquare },
-      whiteTimerTime,
-      blackTimerTime,
     });
     // Illegal move
     if (move === null) return false;
@@ -261,16 +281,11 @@ const Game: React.FC = () => {
   ) {
     if (piece && promoteFromSquare && promoteToSquare) {
       const promotion = piece[1].toLowerCase();
-      const blackTimerTime =
-        orientation === "black" ? myTimerTime : opTimerTime;
-      const whiteTimerTime =
-        orientation === "white" ? myTimerTime : opTimerTime;
       const move = handleMove({
         player: user?.username,
         isLocalMove: true,
         move: { from: promoteFromSquare, to: promoteToSquare, promotion },
-        whiteTimerTime,
-        blackTimerTime,
+
       });
       if (move === null) return false;
       return true;

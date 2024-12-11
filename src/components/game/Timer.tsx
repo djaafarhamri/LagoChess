@@ -64,6 +64,7 @@ const Timer = ({ currentTime, isActive, onTimeEnd, onTimeUpdate }: TimerProps) =
         {timeLeft.minutes < 10 ? `0${timeLeft.minutes}` : timeLeft.minutes}:
         {timeLeft.seconds < 10 ? `0${timeLeft.seconds}` : timeLeft.seconds}
       </h1>
+      <p className="text-white">{timeLeftRef.current}</p>
     </div>
   );
 };
