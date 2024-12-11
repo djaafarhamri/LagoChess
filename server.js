@@ -9,6 +9,7 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const authRoutes = require("./routes/authRoutes");
 const gameRoutes = require("./routes/gameRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 const mongoose = require("mongoose");
 const { makeMove } = require("./controllers/gameController");
 const { sendMessage } = require("./controllers/chatController");
@@ -47,7 +48,6 @@ io.on("connection", (socket) => {
 
     // User joins with username
     socket.on("userOnline", (username) => {
-        console.log("userOnline")
         onlineUsers[socket.id] = username;
         io.emit("onlineUsers", Object.values(onlineUsers)); // Broadcast updated user list
     });
@@ -85,18 +85,25 @@ io.on("connection", (socket) => {
         console.log(`Player ${player} joined game ${gameId}`);
     });
 
+    // Join a game room
+    socket.on("leave-game", ({ gameId, player }) => {
+        socket.leave(gameId);
+        // Notify others that the player joined
+        socket.to(gameId).emit("player-left", { player });
+        console.log(`Player ${player} left game ${gameId}`);
+    });
+
     // Handle moves
-    socket.on("make-move", ({ gameId, player, move, whiteTimerTime, blackTimerTime }) => {
+    socket.on("make-move", async({ gameId, player, move, index, fen, san, whiteTimerTime, blackTimerTime }) => {
         // Broadcast move to other players
         socket.to(gameId).emit("move-made", { player, move, whiteTimerTime, blackTimerTime });
 
         console.log(`Player ${player} made move in game ${gameId}:`, move);
     
-        makeMove(gameId, move)
+        const makeAMove = await makeMove(gameId, san, index, fen, whiteTimerTime, blackTimerTime)
     });
 
     socket.on("send-message", ({gameId, content, sender}) => {
-        console.log("send")
         socket.to(gameId).emit("message-received", { content, sender, sentAt: Date.now });
         sendMessage(gameId, content, sender)
     })
@@ -112,6 +119,7 @@ io.on("connection", (socket) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/game', gameRoutes);
+app.use('/api/chat', chatRoutes);
 
 server.listen(PORT, () => {
   console.log("listening on PORT : ", PORT);

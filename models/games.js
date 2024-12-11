@@ -22,13 +22,24 @@ const gameSchema = new mongoose.Schema({
     default: null,
   },
   winner: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
-  moves: [
-    {
-      from: { type: String, required: true },
-      to: { type: String, required: true },
-      promotion: { type: String },
+  moves: {
+    type: [{
+      san: { type: String },
+      fen: { type: String, required: true, default: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" },
+      index: { type: Number, required: true, default: 0 },
+    }],
+    default: [
+        {
+          san: "",
+          fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          index: 0,
+        },
+      ],
     },
-  ],
+  fen: {
+    type: String,
+    default: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+  },
   chat: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Chat",

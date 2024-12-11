@@ -49,10 +49,8 @@ module.exports.login_post = async (req, res) => {
   try {
     const user = await User.findOne({ username });
     if (user) {
-      console.log("user")
       const auth = await bcrypt.compare(password, user.password);
       if (auth) {
-        console.log("auth")
         const token = createToken(user._id);
         res.cookie("jwt", token, { httpOnly: true, maxAge: maxAge * 1000 });
         return res.status(200).json({ user });

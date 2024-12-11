@@ -42,14 +42,17 @@ module.exports = {
     },
 
     // Make a move
-    makeMove: async (gameId, move) => {
+    makeMove: async (gameId, san, index, fen, whiteTimerTime, blackTimerTime) => {
         try {
             const game = await Game.findById(gameId);
             if (!game) {
-                return res.status(404).json({ success: false, message: "Game not found" });
+                return ({ success: false, message: "Game not found" });
             }
             // Update moves and turn
-            game.moves.push(move );
+            game.moves.push({san, fen, index});
+            game.fen = fen
+            game.timers.black = blackTimerTime
+            game.timers.white = whiteTimerTime
             await game.save();
             return ({ success: true, game });
         } catch (error) {

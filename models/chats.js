@@ -9,12 +9,10 @@ const chatSchema = new mongoose.Schema(
         sentAt: { type: Date, default: Date.now },
       },
     ],
-    game: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Game",
-      },
-    ],
+    game: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Game",
+    },
   },
   { collection: "chats" }
 );
