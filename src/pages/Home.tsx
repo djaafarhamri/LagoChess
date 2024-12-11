@@ -3,7 +3,6 @@ import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router";
 import { SocketContext } from "../context/socket";
 import ChallengePopup from "../components/home/ChallengePopup";
-import { UserType } from "../types/types";
 import ChallengerPopup from "../components/home/ChallengerPopup";
 import OnlineUsers from "../components/home/OnlineUsers";
 
@@ -43,26 +42,6 @@ const Home = () => {
   const handleDecline = () => {
     setChallenger(null);
   };
-
-  const { login } = useUser();
-  useEffect(() => {
-    const getUser = async (login: (userData: UserType) => void) => {
-      try {
-        const response = await fetch("http://localhost:4000/api/auth/getUser", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        if (response.ok) {
-          const data = await response.json();
-          login(data.user);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    getUser(login);
-  }, [login]);
 
   useEffect(() => {
     if (user) {

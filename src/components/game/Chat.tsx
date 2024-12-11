@@ -14,7 +14,22 @@ const Chat = ({gameId}: {gameId: string | undefined}) => {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState<string>("");
-  
+
+  useEffect(() => {
+    const getChat = async () => {
+      const response = await fetch(`http://localhost:4000/api/chat/${gameId}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      const data = await response.json();
+      setMessages(data?.chat?.messages ?? []);
+    };
+    getChat();
+  }, [gameId]);
+
+
   const sendMessage = () => {
     socket.emit("send-message", {
       content: message,

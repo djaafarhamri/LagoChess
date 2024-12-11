@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 type Props = {
-  moves: { move: string; fen: string; index: number }[];
+  moves: { san: string; fen: string; index: number }[];
   fen: string;
   setFen: React.Dispatch<React.SetStateAction<string>>;
   moveIndex: number;
@@ -208,7 +208,7 @@ const MoveHistory = ({
                     setMoveIndex(move.index);
                   }}
                 >
-                  {move.move}
+                  {move.san}
                 </li>
               )
           )}
@@ -229,7 +229,7 @@ const MoveHistory = ({
                     setMoveIndex(move.index);
                   }}
                 >
-                  {move.move}
+                  {move.san}
                 </li>
               )
           )}

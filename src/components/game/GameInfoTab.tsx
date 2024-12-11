@@ -43,7 +43,7 @@ type Props = {
   whiteCaptures: string[];
   blackCaptures: string[];
   moves: {
-    move: string;
+    san: string;
     fen: string;
     index: number;
   }[];

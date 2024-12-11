@@ -14,12 +14,13 @@ export type GameType = {
     result: string | null,
     winner: string | null,
     moves: MoveType[],
+    fen: string,
     timers: {white: number, black: number}
     createdAt: Date
 }
 
 export type MoveType = {
-    from: string,
-    to: string,
-    promotion?: string
+    san: string,
+    fen: string,
+    index: number
 }

@@ -24,10 +24,10 @@ const Game: React.FC = () => {
   const [fen, setFen] = useState(chess.fen());
   const [orientation, setOrientation] = useState<BoardOrientation>("white"); // Manage turn logic
   const [moves, setMoves] = useState<
-    { move: string; fen: string; index: number }[]
+    { san: string; fen: string; index: number }[]
   >([
     {
-      move: "",
+      san: "",
       fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
       index: 0,
     },
@@ -51,7 +51,18 @@ const Game: React.FC = () => {
   useEffect(() => {
     // Join the game room
     socket.emit("join-game", { gameId });
+
+    return () => {
+      socket.emit("leave-game", { gameId });
+    };
   }, [gameId, socket]);
+
+  function getTurnFromFEN(fen: string) {
+    // Split the FEN string into its components
+    const parts = fen.split(" ");
+    // The second part indicates the active color
+    return parts[1]; // 'w' for White, 'b' for Black
+  }
 
   useEffect(() => {
     const getGame = async () => {
@@ -63,17 +74,38 @@ const Game: React.FC = () => {
 
       const data = await response.json();
       setGame(data?.game);
+
+      setFen(data?.game.fen);
+      if (data?.game.moves.length !== 0) {
+        setMoves(data?.game.moves);
+        setMoveIndex(data?.game.moves[data?.game.moves.length - 1].index);
+      }
       setMyTimerTime(data?.game?.timers.white);
       setOpTimerTime(data?.game?.timers.white);
+      const turn = getTurnFromFEN(data?.game.fen);
       if (data?.game.black?.username === user?.username) {
         setOrientation("black");
-        setOpTimerActive((prev) => !prev);
+        if (turn === "w") {
+          setOpTimerActive((prev) => !prev);
+        } else {
+          setMyTimerActive((prev) => !prev);
+        }
       } else {
-        setMyTimerActive((prev) => !prev);
+        if (turn === "w") {
+          setMyTimerActive((prev) => !prev);
+        } else {
+          setOpTimerActive((prev) => !prev);
+        }
       }
     };
     getGame();
   }, [gameId, user?.username]);
+
+  useEffect(() => {
+    if (game) {
+      chess.load(game.fen);
+    }
+  }, [chess, game]);
 
   const [promotedPieces, setPromotedPieces] = useState<
     { color: string; piece: string | undefined }[]
@@ -100,7 +132,7 @@ const Game: React.FC = () => {
       setFen(chess.fen());
       setMoves((prev) => [
         ...prev,
-        { move: result.san, fen: chess.fen(), index: prev.length },
+        { san: result.san, fen: chess.fen(), index: prev.length },
       ]);
 
       if (moveIndex + 1 === moves.length) {
@@ -164,6 +196,9 @@ const Game: React.FC = () => {
           gameId,
           player,
           move,
+          fen: chess.fen(),
+          san: result.san,
+          index: moves.length - 1,
           whiteTimerTime,
           blackTimerTime,
         });
@@ -252,7 +287,7 @@ const Game: React.FC = () => {
 
   return (
     <div className="container flex justify-around mx-auto px-4 py-8">
-      <Chat gameId={gameId}/>
+      <Chat gameId={gameId} />
       {game && (
         <div className="flex justify-center">
           <Chessboard
