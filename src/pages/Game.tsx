@@ -252,7 +252,7 @@ const Game: React.FC = () => {
 
   return (
     <div className="container flex justify-around mx-auto px-4 py-8">
-      <Chat />
+      <Chat gameId={gameId}/>
       {game && (
         <div className="flex justify-center">
           <Chessboard
