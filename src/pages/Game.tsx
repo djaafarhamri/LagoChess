@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useUser } from "../context/UserContext";
 import { SocketContext } from "../context/socket";
 import {
@@ -12,6 +12,8 @@ import {
 import { GameType } from "../types/types";
 import Chat from "../components/game/Chat";
 import GameInfoTab from "../components/game/GameInfoTab";
+import GameOverPopup from "../components/game/GameOverPopup";
+import UnderTheBoard from "../components/game/UnderTheBoard";
 
 const Game: React.FC = () => {
   const params = useParams();
@@ -22,7 +24,9 @@ const Game: React.FC = () => {
   const [chess] = useState<Chess>(new Chess());
   const [game, setGame] = useState<GameType>();
   const [fen, setFen] = useState(chess.fen());
+  const [gameOver, setGameOver] = useState<boolean>(false);
   const [orientation, setOrientation] = useState<BoardOrientation>("white"); // Manage turn logic
+  const [mySide, setMySide] = useState<BoardOrientation>("white"); // Manage turn logic
   const [moves, setMoves] = useState<
     { san: string; fen: string; index: number }[]
   >([
@@ -42,13 +46,14 @@ const Game: React.FC = () => {
   const [myTimerTime, setMyTimerTime] = useState(300); // Example: 5 minutes in seconds
   const [opTimerTime, setOpTimerTime] = useState(300); // Example: 5 minutes in seconds
   const [moveIndex, setMoveIndex] = useState<number>(0);
+  const [offeredDraw, setOfferedDraw] = useState<boolean>(false);
 
   const handleSwitchTimers = () => {
     setMyTimerActive((prev) => !prev);
     setOpTimerActive((prev) => !prev);
   };
 
-  const bufferTime = 200
+  const bufferTime = 200;
 
   useEffect(() => {
     // Join the game room
@@ -66,14 +71,13 @@ const Game: React.FC = () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [gameId, socket, user?.username]);
- 
+
   useEffect(() => {
     socket.on("timerSync", ({ timers, white, black }) => {
-  
       // Directly use the timers from the database without subtracting elapsed time
       const adjustedWhiteTime = timers.white + bufferTime / 1000;
       const adjustedBlackTime = timers.black + bufferTime / 1000;
-  
+
       // Update the timers based on the current orientation
       if (user?.username === white) {
         setMyTimerTime(Math.round(adjustedWhiteTime));
@@ -84,8 +88,6 @@ const Game: React.FC = () => {
       }
     });
   }, [socket, user?.username]);
-  
-
 
   function getTurnFromFEN(fen: string) {
     // Split the FEN string into its components
@@ -113,17 +115,31 @@ const Game: React.FC = () => {
       const turn = getTurnFromFEN(data?.game.fen);
       if (data?.game.black?.username === user?.username) {
         setOrientation("black");
-        if (turn === "w") {
-          setOpTimerActive((prev) => !prev);
-        } else {
-          setMyTimerActive((prev) => !prev);
+        setMySide("black");
+        if (data?.game.status !== "finished") {
+          if (turn === "w") {
+            setOpTimerActive((prev) => !prev);
+          } else {
+            setMyTimerActive((prev) => !prev);
+          }
         }
       } else {
-        if (turn === "w") {
-          setMyTimerActive((prev) => !prev);
-        } else {
-          setOpTimerActive((prev) => !prev);
+        if (data?.game.status !== "finished") {
+          if (turn === "w") {
+            setMyTimerActive((prev) => !prev);
+          } else {
+            setOpTimerActive((prev) => !prev);
+          }
         }
+      }
+      if (data?.game.status === "finished") {
+        setGameOver(true);
+        setTitle(`Game Over! Reason: ${data?.game.reason}`)
+        setWinner(
+          data?.game.winner === "None"
+            ? "No Winner"
+            : `Winner: ${data?.game.winner}`
+        );
       }
     };
     getGame();
@@ -138,7 +154,6 @@ const Game: React.FC = () => {
   const [promotedPieces, setPromotedPieces] = useState<
     { color: string; piece: string | undefined }[]
   >([]); // Store promoted pieces
-
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -157,7 +172,14 @@ const Game: React.FC = () => {
     };
   }, [socket, gameId]);
 
+  const stopTimers = () => {
+    setMyTimerActive(false);
+    setOpTimerActive(false);
+  };
 
+  useEffect(() => {
+    if (gameOver) stopTimers();
+  }, [gameOver]);
   const handleMove = useCallback(
     ({
       player,
@@ -237,11 +259,16 @@ const Game: React.FC = () => {
           san: result.san,
           index: moves.length - 1,
         });
+        if (offeredDraw) {
+          handleDeclineDraw();
+        }
       }
-
+      if (chess.isGameOver()) {
+        setGameOver(true);
+      }
       return result;
     },
-    [chess, gameId, moveIndex, moves, promotedPieces, socket]
+    [chess, gameId, moveIndex, moves, offeredDraw, promotedPieces, socket]
   );
 
   useEffect(() => {
@@ -285,7 +312,6 @@ const Game: React.FC = () => {
         player: user?.username,
         isLocalMove: true,
         move: { from: promoteFromSquare, to: promoteToSquare, promotion },
-
       });
       if (move === null) return false;
       return true;
@@ -300,11 +326,147 @@ const Game: React.FC = () => {
     setOpTimerTime(time); // Update opponent's timer's state
   };
 
+  const navigate = useNavigate();
+
+  const [gameOverPopupOpen, setGameOverPopupOpen] = useState<boolean>(true);
+
+  const handleGameOverPopupClose = () => {
+    setGameOverPopupOpen(false);
+  };
+
+  const handleGoHome = () => {
+    navigate("/");
+  };
+
+  const [title, setTitle] = useState<string>("");
+  const [winner, setWinner] = useState<string>("");
+
+  useEffect(() => {
+    // Check for timer expiration
+    if (myTimerTime <= 0) {
+      setGameOver(true);
+      setTitle(`Game Over! Reason: Time's Up`);
+      if (mySide === "black") {
+        setWinner("Black");
+      } else {
+        setWinner("White");
+      }
+      socket.emit("game-over", { gameId, winner: mySide, reason: "Time's Up" });
+    } else if (opTimerTime <= 0) {
+      setGameOver(true);
+      setTitle(`Game Over! Reason: Time's Up`);
+      if (mySide === "black") {
+        setWinner("Black");
+      } else {
+        setWinner("White");
+      }
+      socket.emit("game-over", {
+        gameId,
+        winner: mySide === "black" ? "white" : "black",
+        reason: "Time's Up",
+      });
+    }
+  }, [gameId, mySide, myTimerTime, opTimerTime, socket]);
+
+  useEffect(() => {
+    let reason = "";
+    let winner = "";
+
+    if (chess.isCheckmate()) {
+      reason = "Checkmate";
+      winner = chess.turn() === "w" ? "Black" : "White"; // Last move made wins
+      socket.emit("game-over", { gameId, winner, reason: "Checkmate" });
+    } else if (chess.isStalemate()) {
+      reason = "Stalemate";
+      winner = "None";
+      socket.emit("game-over", { gameId, winner, reason: "Stalemate" });
+    } else if (chess.isInsufficientMaterial()) {
+      reason = "Insufficient Material";
+      winner = "None";
+      socket.emit("game-over", {
+        gameId,
+        winner,
+        reason: "Insufficient Material",
+      });
+    } else if (chess.isThreefoldRepetition()) {
+      reason = "Threefold Repetition";
+      winner = "None";
+      socket.emit("game-over", {
+        gameId,
+        winner,
+        reason: "Threefold Repetition",
+      });
+    } else if (chess.isDraw()) {
+      reason = "Draw";
+      winner = "None";
+      socket.emit("game-over", { gameId, winner, reason: "Draw" });
+    }
+
+    setTitle(`Game Over! Reason: ${reason}`);
+    if (winner !== "None") {
+      setWinner(`Winner: ${winner}`);
+    } else {
+      setWinner("No winner");
+    }
+  }, [chess, gameId, socket]);
+
+  const handleDraw = () => {
+    socket.emit("draw-offer", { gameId, player: user?.username });
+  };
+
+  const handleDeclineDraw = () => {
+    setOfferedDraw(false);
+  };
+
+  const handleAcceptDraw = () => {
+    setGameOver(true);
+    setTitle(`Game Over! Reason: Draw`);
+    setWinner("no winner");
+    socket.emit("accept-draw", { gameId, player: user?.username });
+  };
+
+  useEffect(() => {
+    socket.on("draw-offer", ({ player }) => {
+      if (player !== user?.username) setOfferedDraw(true);
+    });
+  }, [socket, user?.username]);
+
+  useEffect(() => {
+    socket.on("accept-draw", ({ player }) => {
+      if (player !== user?.username) {
+        setGameOver(true);
+        setTitle(`Game Over! Reason: Draw`);
+        setWinner("No Winner");
+      }
+    });
+  }, [mySide, socket, user?.username]);
+
+  const handleResign = () => {
+    setGameOver(true);
+    setTitle(`Game Over! Reason: Resign`);
+    setWinner(mySide === "black" ? "Winner: White" : "Winner: Black");
+    socket.emit("resign", {
+      gameId,
+      player: user?.username,
+      winner: mySide === "black" ? "white" : "black",
+    });
+  };
+
+  useEffect(() => {
+    socket.on("resign", ({ player }) => {
+      if (player !== user?.username) {
+        setGameOver(true);
+        setTitle(`Game Over! Reason: Resign`);
+        setWinner(mySide === "black" ? "Winner: Black" : "Winner: White");
+      }
+    });
+  }, [mySide, socket, user?.username]);
+
   return (
     <div className="container flex justify-around mx-auto px-4 py-8">
       <Chat gameId={gameId} />
       {game && (
-        <div className="flex justify-center">
+        <div className="flex flex-col justify-center">
           <Chessboard
             id={gameId}
             position={fen}
@@ -314,9 +476,18 @@ const Game: React.FC = () => {
             boardOrientation={orientation}
             arePiecesDraggable={
               chess.turn() === orientation[0] &&
-              moveIndex === moves[moves.length - 1].index
+              moveIndex === moves[moves.length - 1].index &&
+              !gameOver
             } // Disable drag when it's not the player's turn
             animationDuration={0}
+          />
+          <UnderTheBoard
+            onDraw={handleDraw}
+            onResign={handleResign}
+            offeredDraw={offeredDraw}
+            onAcceptDraw={handleAcceptDraw}
+            onDeclineDraw={handleDeclineDraw}
+            gameOver={gameOver}
           />
         </div>
       )}
@@ -331,12 +502,21 @@ const Game: React.FC = () => {
         whiteCaptures={whiteCaptures}
         blackCaptures={blackCaptures}
         handleMyTimeUpdate={handleMyTimeUpdate}
+        stopTimers={stopTimers}
         moves={moves}
         fen={fen}
         setFen={setFen}
         moveIndex={moveIndex}
         setMoveIndex={setMoveIndex}
       />
+      {gameOver && gameOverPopupOpen && (
+        <GameOverPopup
+          title={title}
+          winner={winner}
+          onClose={handleGameOverPopupClose}
+          onGoHome={handleGoHome}
+        />
+      )}
     </div>
   );
 };

@@ -7,7 +7,12 @@ type TimerProps = {
   onTimeUpdate?: (time: number) => void; // Callback to report the current time to the parent
 };
 
-const Timer = ({ currentTime, isActive, onTimeEnd, onTimeUpdate }: TimerProps) => {
+const Timer = ({
+  currentTime,
+  isActive,
+  onTimeEnd,
+  onTimeUpdate,
+}: TimerProps) => {
   const [timeLeft, setTimeLeft] = useState({
     minutes: Math.floor(currentTime / 60),
     seconds: currentTime % 60,
@@ -29,22 +34,23 @@ const Timer = ({ currentTime, isActive, onTimeEnd, onTimeUpdate }: TimerProps) =
     if (isActive) {
       const startCountdown = () => {
         intervalRef.current = setInterval(() => {
-          timeLeftRef.current -= 1;
+          if (timeLeftRef.current > 0) {
+            timeLeftRef.current -= 1;
 
-          // Notify parent of updated time
-          if (onTimeUpdate) onTimeUpdate(timeLeftRef.current);
+            // Notify parent of updated time
+            if (onTimeUpdate) onTimeUpdate(timeLeftRef.current);
 
-          if (timeLeftRef.current <= 0) {
+            setTimeLeft({
+              minutes: Math.floor(timeLeftRef.current / 60),
+              seconds: timeLeftRef.current % 60,
+            });
+          } else {
+            // Stop timer when it reaches 0
             clearInterval(intervalRef.current!);
             intervalRef.current = null;
-            if (onTimeEnd) onTimeEnd();
-            return;
-          }
 
-          setTimeLeft({
-            minutes: Math.floor(timeLeftRef.current / 60),
-            seconds: timeLeftRef.current % 60,
-          });
+            if (onTimeEnd) onTimeEnd();
+          }
         }, 1000);
       };
 
@@ -64,7 +70,6 @@ const Timer = ({ currentTime, isActive, onTimeEnd, onTimeUpdate }: TimerProps) =
         {timeLeft.minutes < 10 ? `0${timeLeft.minutes}` : timeLeft.minutes}:
         {timeLeft.seconds < 10 ? `0${timeLeft.seconds}` : timeLeft.seconds}
       </h1>
-      <p className="text-white">{timeLeftRef.current}</p>
     </div>
   );
 };

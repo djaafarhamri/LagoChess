@@ -40,6 +40,7 @@ type Props = {
   myTimerActive: boolean;
   handleOpTimeUpdate: (time: number) => void;
   handleMyTimeUpdate: (time: number) => void;
+  stopTimers: () => void;
   whiteCaptures: string[];
   blackCaptures: string[];
   moves: {
@@ -64,6 +65,7 @@ const GameInfoTab = ({
   whiteCaptures,
   blackCaptures,
   handleMyTimeUpdate,
+  stopTimers,
   moves,
   fen,
   setFen,
@@ -75,7 +77,7 @@ const GameInfoTab = ({
       <Timer
         currentTime={opTimerTime}
         isActive={opTimerActive}
-        onTimeEnd={() => console.log("My Timer Ended!")}
+        onTimeEnd={stopTimers}
         onTimeUpdate={handleOpTimeUpdate}
       />
       {orientation !== "white" ? (
@@ -168,7 +170,7 @@ const GameInfoTab = ({
       <Timer
         currentTime={myTimerTime}
         isActive={myTimerActive}
-        onTimeEnd={() => console.log("My Timer Ended!")}
+        onTimeEnd={stopTimers}
         onTimeUpdate={handleMyTimeUpdate}
       />
     </div>

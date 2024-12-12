@@ -66,7 +66,7 @@ const Chat = ({gameId}: {gameId: string | undefined}) => {
         ))}
       <input
         type="text"
-        className="mt-auto bg-[#313131] border-t-2 text-white"
+        className="mt-auto bg-[#313131] h-10 border-t-2 text-white"
         placeholder="chat"
         onChange={(e) => setMessage(e.target.value)}
         value={message}
