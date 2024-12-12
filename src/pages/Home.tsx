@@ -6,10 +6,11 @@ import ChallengePopup from "../components/home/ChallengePopup";
 import ChallengerPopup from "../components/home/ChallengerPopup";
 import OnlineUsers from "../components/home/OnlineUsers";
 import QuickGame from "../components/home/QuickGame";
+import Lobby from "../components/home/Lobby";
 
 const Home = () => {
   const { user } = useUser();
-  const [activeTab, setActiveTab] = useState("onlineUsers"); // Track active tab
+  const [activeTab, setActiveTab] = useState("quickGame"); // Track active tab
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [challenger, setChallenger] = useState<string | null>(null);
   const [opponant, setOpponant] = useState<string>("");
@@ -86,17 +87,7 @@ const Home = () => {
     <div className="container flex flex-col items-center mx-auto px-4 py-8">
       <div className="tabs flex space-x-4 mb-6">
         <button
-          className={`tab py-2 px-4 rounded-lg text-white ${
-            activeTab === "onlineUsers"
-              ? "bg-blue-600"
-              : "bg-gray-600 hover:bg-gray-500"
-          }`}
-          onClick={() => setActiveTab("onlineUsers")}
-        >
-          Online Users
-        </button>
-        <button
-          className={`tab py-2 px-4 rounded-lg text-white ${
+          className={`w-32 tab py-2 px-4 rounded-lg text-white ${
             activeTab === "quickGame"
               ? "bg-blue-600"
               : "bg-gray-600 hover:bg-gray-500"
@@ -106,18 +97,29 @@ const Home = () => {
           Quick Game
         </button>
         <button
-          className={`tab py-2 px-4 rounded-lg text-white ${
-            activeTab === "leaderboard"
+          className={`w-32 tab py-2 px-4 rounded-lg text-white ${
+            activeTab === "onlineUsers"
               ? "bg-blue-600"
               : "bg-gray-600 hover:bg-gray-500"
           }`}
-          onClick={() => setActiveTab("leaderboard")}
+          onClick={() => setActiveTab("onlineUsers")}
         >
-          Leaderboard
+          Online Users
+        </button>
+        <button
+          className={`w-32 tab py-2 px-4 rounded-lg text-white ${
+            activeTab === "lobby"
+              ? "bg-blue-600"
+              : "bg-gray-600 hover:bg-gray-500"
+          }`}
+          onClick={() => setActiveTab("lobby")}
+        >
+          Lobby
         </button>
       </div>
 
       <div className="bg-gray-800 w-full max-w-[640px] h-[640px] p-8 rounded-lg shadow-xl">
+        {activeTab === "quickGame" && <QuickGame />}
         {activeTab === "onlineUsers" && (
           <OnlineUsers
             users={onlineUsers}
@@ -126,17 +128,8 @@ const Home = () => {
           />
         )}
 
-        {activeTab === "quickGame" && (
-          <QuickGame />
-        )}
-          
-        {activeTab === "leaderboard" && (
-          <div className="leaderboard text-center">
-            <h2 className="text-2xl font-bold text-yellow-400 mb-6">
-              Leaderboard
-            </h2>
-            <p className="text-gray-300">Coming Soon!</p>
-          </div>
+        {activeTab === "lobby" && (
+          <Lobby />
         )}
       </div>
 
