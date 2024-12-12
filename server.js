@@ -50,6 +50,7 @@ let onlineUsers = {}; // Store online users with socket IDs
 
 const quickPairingQueues = {};
 
+
 // Handle socket connections
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
@@ -149,7 +150,35 @@ io.on("connection", (socket) => {
   socket.on("game-over", async ({ gameId, winner, reason }) => {
     await gameOver(gameId, "win", winner, reason);
   });
+
+  
+function broadcastQuickPairingQueue() {
+  console.log("broadcastQuickPairingQueue")
+  // Create a sanitized version of the queue
+  const sanitizedQueues = {};
+  for (const [timer, players] of Object.entries(quickPairingQueues)) {
+    sanitizedQueues[timer] = players.map((player) => ({
+      username: player.username, // Include only serializable data
+    }));
+  }
+
+  io.emit("updateQueue", sanitizedQueues); // Emit the sanitized queue
+}
+socket.on("requestQueue", () => {
+  console.log("requestQueue")
+  // Create a sanitized version of the queue
+  const sanitizedQueues = {};
+  for (const [timer, players] of Object.entries(quickPairingQueues)) {
+    sanitizedQueues[timer] = players.map((player) => ({
+      username: player.username, // Include only serializable data
+    }));
+  }
+console.log("updateQueue", sanitizedQueues)
+  io.to(socket.id).emit("updateQueue", sanitizedQueues); // Emit the sanitized queue
+  
+})
   socket.on("quickPairing", async({ username, timer }) => {
+    console.log("quickPairing")
     // Ensure the queue for this timer exists
     if (!quickPairingQueues[timer]) {
       quickPairingQueues[timer] = [];
@@ -170,6 +199,7 @@ io.on("connection", (socket) => {
       // Add the player to the queue
       queue.push({ username, socket });
     }
+    broadcastQuickPairingQueue()
   });
 
   // Handle user disconnect
