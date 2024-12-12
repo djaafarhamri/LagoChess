@@ -13,15 +13,16 @@ const gameSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["waiting", "active", "finished"],
-    default: "waiting",
+    enum: ["active", "finished"],
+    default: "active",
   },
   result: {
     type: String,
-    enum: ["win", "draw", "resign", "timeout", null],
+    enum: ["win", "draw", null],
     default: null,
   },
-  winner: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  reason: { type: String, default: null },
+  winner: { type: String, default: null },
   moves: {
     type: [{
       san: { type: String },

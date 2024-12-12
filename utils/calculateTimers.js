@@ -1,5 +1,5 @@
 
-module.exports =  calculateTimers= (game) => {
+module.exports =  calculateTimers = (game) => {
     const now = Date.now();
     const timeElapsed = Math.floor(
       (now - game.lastMoveTimestamp.getTime()) / 1000

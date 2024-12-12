@@ -11,9 +11,8 @@ const authRoutes = require("./routes/authRoutes");
 const gameRoutes = require("./routes/gameRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const mongoose = require("mongoose");
-const { makeMove, syncTimers } = require("./controllers/gameController");
+const { makeMove, syncTimers, gameOver } = require("./controllers/gameController");
 const { sendMessage } = require("./controllers/chatController");
-const calculateTimers = require("./utils/calculateTimers");
 const PORT = process.env.PORT || 4000;
 // connect database
 
@@ -124,6 +123,24 @@ io.on("connection", (socket) => {
       .emit("message-received", { content, sender, sentAt: Date.now });
     sendMessage(gameId, content, sender);
   });
+
+  socket.on("draw-offer", ({gameId, player}) => {
+    socket.to(gameId).emit("draw-offer", {player})
+  })
+
+  socket.on("accept-draw", async({gameId, player}) => {
+    socket.to(gameId).emit("accept-draw", {player})
+    await gameOver(gameId, "draw", "None", "Draw")
+  })
+
+  socket.on("resign", async({gameId, player, winner}) => {
+    socket.to(gameId).emit("resign", {player})
+    await gameOver(gameId, "win", winner, "Resign")
+  })
+
+  socket.on("game-over", async({gameId, winner, reason}) => {
+    await gameOver(gameId, "win", winner, reason)
+  })
 
   // Handle user disconnect
   socket.on("disconnect", () => {
