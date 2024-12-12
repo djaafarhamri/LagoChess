@@ -6,8 +6,6 @@ module.exports = {
   // Create a new game
   createGame: async (opponant, challenger, timer) => {
     try {
-      console.log("create game : ", opponant, challenger, timer)
-      console.log("create game 2 : ", parseInt(timer?.split("+")[0]) * 60)
       const white = await User.findOne({ username: opponant });
       const black = await User.findOne({ username: challenger });
       const newGame = new Game({
@@ -19,10 +17,8 @@ module.exports = {
         },
       });
       await newGame.save();
-      console.log("new Game : ", newGame)
       return ({ success: true, game: newGame });
     } catch (error) {
-      console.log("error : ", error)
       return ({ success: false, message: error.message });
     }
   },

@@ -62,11 +62,9 @@ io.on("connection", (socket) => {
 
   // Handle challenge request
   socket.on("sendChallenge", ({ challenger, opponent, timer }) => {
-    console.log("send challenge", challenger, opponent, timer)
     const opponentSocketId = Object.keys(onlineUsers).find(
       (id) => onlineUsers[id] === opponent
     );
-    console.log("send opponentSocketId : ", opponentSocketId)
 
     if (opponentSocketId) {
       io.to(opponentSocketId).emit("receiveChallenge", { challenger, timer });
@@ -162,10 +160,8 @@ io.on("connection", (socket) => {
     if (queue.length > 0) {
       // Match with another player
       const opponent = queue.shift(); // Get the first player in the queue
-      console.log("quick pairs: ", username, opponent.username, timer)
       const data = await createGame(username, opponent.username, timer);
       if (data.success) {
-        console.log("id : ", data.game._id.toString())
         // Notify both players about the game
         io.to(socket.id).emit("startGame", { gameId: data.game._id.toString() });
         io.to(opponent.socket.id).emit("startGame", { gameId: data.game._id.toString() });
@@ -173,7 +169,6 @@ io.on("connection", (socket) => {
     } else {
       // Add the player to the queue
       queue.push({ username, socket });
-      console.log("quick pairs: ", quickPairingQueues)
     }
   });
 
