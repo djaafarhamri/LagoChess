@@ -16,7 +16,7 @@ function ChallengerPopup({
   onTimeout,
 }: ChallengePopupPropsType) {
   const [progress, setProgress] = useState(100); // Progress of the border (100%)
-  
+
   // Use a ref to store the start time to persist across renders
   const startTimeRef = useRef(Date.now());
 
@@ -27,7 +27,7 @@ function ChallengerPopup({
       const elapsedTime = (now - startTimeRef.current) / 1000; // In seconds
 
       // Calculate the new progress as a percentage (10 seconds = 100%)
-      const newProgress = Math.max(0, 100 - (elapsedTime * 10));
+      const newProgress = Math.max(0, 100 - elapsedTime * 10);
 
       setProgress(newProgress);
 
@@ -49,7 +49,7 @@ function ChallengerPopup({
   }, [onTimeout]);
 
   return (
-    <div className="fixed bg-[#454545] bottom-5 right-5 rounded-lg shadow-lg max-w-fit w-full z-[1000]">
+    <>
       <div className="mt-4 text-center px-6 py-2 ">
         <h3 className="text-lg text-gray-300">
           <span className="text-yellow-400">{challenger}</span> has challenged
@@ -79,7 +79,7 @@ function ChallengerPopup({
           transition: "width 0.1s linear", // Smooth animation over 100ms interval
         }}
       />
-    </div>
+    </>
   );
 }
 

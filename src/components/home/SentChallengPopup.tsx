@@ -40,7 +40,7 @@ function SentChallengePopup({ username, onTimeout }: SentChallengePopupPropsType
   }, [onTimeout]);
 
   return (
-    <div className="fixed flex flex-col bg-[#454545] bottom-5 right-5 rounded-lg shadow-lg max-w-fit w-full z-[1000]">
+    <>
       <div className="text-center px-6 py-2">
         <h3 className="mt-2 text-xl text-gray-300">
           waiting for <span className="text-yellow-400">{username}</span> response...
@@ -55,7 +55,7 @@ function SentChallengePopup({ username, onTimeout }: SentChallengePopupPropsType
           transition: "width 0.1s linear", // Smooth animation over 100ms interval
         }}
       />
-    </div>
+    </>
   );
 }
 

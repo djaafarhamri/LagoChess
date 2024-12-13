@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { ReactElement, useContext, useEffect, useState } from "react";
 import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router";
 import { SocketContext } from "../context/socket";
@@ -9,6 +9,7 @@ import QuickGame from "../components/home/QuickGame";
 import Lobby from "../components/home/Lobby";
 import PairingLoadingPopup from "../components/home/PairingLoadingPopup";
 import SentChallengePopup from "../components/home/SentChallengPopup";
+import NotificationManager from "../components/home/NotificationManager";
 
 const Home = () => {
   const { user } = useUser();
@@ -113,6 +114,55 @@ const Home = () => {
     setIsPairingLoadingPopUpOpen(true);
   };
 
+  const [popups, setPopups] = useState<{id: string, component: ReactElement, height: number}[]>([]);
+
+  const addPopup = (id: string, popup: ReactElement, height: number) => {
+    setPopups((prev) => [...prev, { id, component: popup, height }]);
+  };
+
+  const removePopup = (id: string) => {
+    setPopups((prev) => prev.filter((popup) => popup.id !== id));
+  };
+
+  useEffect(() => {
+    if (isSentChallengePopUpOpen) {
+      addPopup("SentChallengePopup",
+        <SentChallengePopup username={sentChallengeUsername} onTimeout={handleSendChallengeTimeout} />, 78
+      )
+    } else {
+      removePopup("SentChallengePopup")
+    }
+
+  }, [isSentChallengePopUpOpen])
+
+  useEffect(() => {
+    if (isPairingLoadingPopUpOpen) {
+      addPopup("PairingLoadingPopup",
+        <PairingLoadingPopup timer={timerPairing} onCancel={handlePairingLoadingPopupClose} />, 92
+      )
+    } else {
+      removePopup("PairingLoadingPopup")
+    }
+
+  }, [isPairingLoadingPopUpOpen])
+
+  useEffect(() => {
+    if (challenger) {
+      addPopup("challenger",
+        <ChallengerPopup
+          challenger={challenger}
+          timer={timer}
+          onAccept={handleAccept}
+          onDecline={handleDecline}
+          onTimeout={handleReceivedChallengeTimeout}
+        />, 150
+      )
+    } else {
+      removePopup("challenger")
+    }
+
+  }, [challenger])
+
   return (
     <div className="container flex flex-col items-center mx-auto px-4 py-8">
       <div className="tabs flex space-x-4 mb-6">
@@ -164,16 +214,6 @@ const Home = () => {
         {activeTab === "lobby" && <Lobby />}
       </div>
 
-      {challenger && (
-        <ChallengerPopup
-          challenger={challenger}
-          timer={timer}
-          onAccept={handleAccept}
-          onDecline={handleDecline}
-          onTimeout={handleReceivedChallengeTimeout}
-        />
-      )}
-
       <div className="relative">
         {isChallengePopUpOpen && (
           <ChallengePopup
@@ -185,19 +225,9 @@ const Home = () => {
       </div>
 
       <div className="relative">
-        {isPairingLoadingPopUpOpen && (
-          <PairingLoadingPopup
-            timer={timerPairing}
-            onCancel={handlePairingLoadingPopupClose}
-          />
-        )}
+          <NotificationManager popups={popups} />
       </div>
 
-      <div className="relative">
-        {isSentChallengePopUpOpen && (
-          <SentChallengePopup username={sentChallengeUsername} onTimeout={handleSendChallengeTimeout} />
-        )}
-      </div>
     </div>
   );
 };
