@@ -1,21 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
-type ChallengePopupPropsType = {
-  challenger: string;
-  timer: string;
-  onAccept: (timer: string) => void;
-  onDecline: () => void;
-  onTimeout: () => void;
+type SentChallengePopupPropsType = {
+  username: string | null;
+  onTimeout: () => void; // Callback to notify when the timeout is reached
 };
 
-function ChallengerPopup({
-  challenger,
-  timer,
-  onAccept,
-  onDecline,
-  onTimeout,
-}: ChallengePopupPropsType) {
-  const [progress, setProgress] = useState(100); // Progress of the border (100%)
+function SentChallengePopup({ username, onTimeout }: SentChallengePopupPropsType) {
+    const [progress, setProgress] = useState(100); // Progress of the border (100%)
   
   // Use a ref to store the start time to persist across renders
   const startTimeRef = useRef(Date.now());
@@ -49,28 +40,13 @@ function ChallengerPopup({
   }, [onTimeout]);
 
   return (
-    <div className="fixed bg-[#454545] bottom-5 right-5 rounded-lg shadow-lg max-w-fit w-full z-[1000]">
-      <div className="mt-4 text-center px-6 py-2 ">
-        <h3 className="text-lg text-gray-300">
-          <span className="text-yellow-400">{challenger}</span> has challenged
-          you to a <span className="text-yellow-400">{timer}</span> game of
-          chess!
+    <div className="fixed flex flex-col bg-[#454545] bottom-5 right-5 rounded-lg shadow-lg max-w-fit w-full z-[1000]">
+      <div className="text-center px-6 py-2">
+        <h3 className="mt-2 text-xl text-gray-300">
+          waiting for <span className="text-yellow-400">{username}</span> response...
         </h3>
       </div>
-      <div className="flex mt-2 px-6 py-2 ">
-        <button
-          className="px-4 py-2 ml-auto bg-green-500 text-gray-100 font-normal rounded-md hover:bg-green-400 focus:outline-none focus:ring-2 focus:ring-green-300"
-          onClick={() => onAccept(timer)}
-        >
-          Accept
-        </button>
-        <button
-          className="px-4 py-2 mx-2 bg-red-500 text-gray-100 font-normal rounded-md hover:bg-red-400 focus:outline-none focus:ring-2 focus:ring-red-300"
-          onClick={onDecline}
-        >
-          Decline
-        </button>
-      </div>
+
       <div
         className="border-b-2 mt-2 w-full"
         style={{
@@ -83,4 +59,4 @@ function ChallengerPopup({
   );
 }
 
-export default ChallengerPopup;
+export default SentChallengePopup;

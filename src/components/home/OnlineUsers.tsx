@@ -4,9 +4,10 @@ type Props = {
   users: string[];
   setOpponant: React.Dispatch<React.SetStateAction<string>>;
   setIsChallengePopUpOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  sentChallengeUsername: string
 };
 
-function OnlineUsers({ users, setOpponant, setIsChallengePopUpOpen }: Props) {
+function OnlineUsers({ users, setOpponant, setIsChallengePopUpOpen, sentChallengeUsername }: Props) {
   const { user } = useUser();
 
   return (
@@ -27,7 +28,8 @@ function OnlineUsers({ users, setOpponant, setIsChallengePopUpOpen }: Props) {
                     setIsChallengePopUpOpen(true);
                     setOpponant(op);
                   }}
-                  className="ml-5 px-3 py-1 bg-yellow-500 text-black font-semibold rounded hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  disabled={sentChallengeUsername === op}
+                  className="ml-5 px-3 py-1 bg-yellow-500 text-black font-semibold rounded hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:bg-[#454545]"
                 >
                   Challenge
                 </button>

@@ -7,6 +7,8 @@ import ChallengerPopup from "../components/home/ChallengerPopup";
 import OnlineUsers from "../components/home/OnlineUsers";
 import QuickGame from "../components/home/QuickGame";
 import Lobby from "../components/home/Lobby";
+import PairingLoadingPopup from "../components/home/PairingLoadingPopup";
+import SentChallengePopup from "../components/home/SentChallengPopup";
 
 const Home = () => {
   const { user } = useUser();
@@ -15,6 +17,12 @@ const Home = () => {
   const [challenger, setChallenger] = useState<string | null>(null);
   const [opponant, setOpponant] = useState<string>("");
   const [isChallengePopUpOpen, setIsChallengePopUpOpen] = useState(false);
+  const [isSentChallengePopUpOpen, setIsSentChallengePopUpOpen] =
+    useState(false);
+  const [sentChallengeUsername, setSentChallengeUsername] = useState("");
+  const [timerPairing, setTimerPairing] = useState<string | null>(null);
+  const [isPairingLoadingPopUpOpen, setIsPairingLoadingPopUpOpen] =
+    useState(false);
   const [timer, setTimer] = useState("10 min");
   const navigate = useNavigate();
   const socket = useContext(SocketContext);
@@ -38,7 +46,18 @@ const Home = () => {
       opponent,
       timer,
     });
+    setSentChallengeUsername(opponant);
+    setIsSentChallengePopUpOpen(true);
+    // Close the popup after 10 seconds
+
   };
+  const handleSendChallengeTimeout = () => {
+    setSentChallengeUsername("");
+    setIsSentChallengePopUpOpen(false); // Close the popup on timeout
+  };
+  const handleReceivedChallengeTimeout = () => {
+    setChallenger(null);
+  }
 
   useEffect(() => {
     if (user) {
@@ -83,6 +102,17 @@ const Home = () => {
     };
   }, [socket]);
 
+  const handlePairingLoadingPopupClose = () => {
+    socket.emit("cancelPairing", { username: user?.username });
+    setIsPairingLoadingPopUpOpen(false);
+  };
+
+  const handleQuickPair = (timer: string) => {
+    socket.emit("quickPairing", { username: user?.username, timer });
+    setTimerPairing(timer);
+    setIsPairingLoadingPopUpOpen(true);
+  };
+
   return (
     <div className="container flex flex-col items-center mx-auto px-4 py-8">
       <div className="tabs flex space-x-4 mb-6">
@@ -119,18 +149,19 @@ const Home = () => {
       </div>
 
       <div className="bg-gray-800 w-full max-w-[640px] h-[640px] p-8 rounded-lg shadow-xl">
-        {activeTab === "quickGame" && <QuickGame />}
+        {activeTab === "quickGame" && (
+          <QuickGame onQuickPair={handleQuickPair} />
+        )}
         {activeTab === "onlineUsers" && (
           <OnlineUsers
             users={onlineUsers}
             setOpponant={setOpponant}
             setIsChallengePopUpOpen={setIsChallengePopUpOpen}
+            sentChallengeUsername={sentChallengeUsername}
           />
         )}
 
-        {activeTab === "lobby" && (
-          <Lobby />
-        )}
+        {activeTab === "lobby" && <Lobby />}
       </div>
 
       {challenger && (
@@ -139,6 +170,7 @@ const Home = () => {
           timer={timer}
           onAccept={handleAccept}
           onDecline={handleDecline}
+          onTimeout={handleReceivedChallengeTimeout}
         />
       )}
 
@@ -149,6 +181,21 @@ const Home = () => {
             username={opponant}
             setIsOpen={setIsChallengePopUpOpen}
           />
+        )}
+      </div>
+
+      <div className="relative">
+        {isPairingLoadingPopUpOpen && (
+          <PairingLoadingPopup
+            timer={timerPairing}
+            onCancel={handlePairingLoadingPopupClose}
+          />
+        )}
+      </div>
+
+      <div className="relative">
+        {isSentChallengePopUpOpen && (
+          <SentChallengePopup username={sentChallengeUsername} onTimeout={handleSendChallengeTimeout} />
         )}
       </div>
     </div>
