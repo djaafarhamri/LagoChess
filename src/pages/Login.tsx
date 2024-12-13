@@ -1,11 +1,13 @@
 import { FormEvent, useState } from "react";
 import { useUser } from "../context/UserContext";
+import { useNavigate } from "react-router";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useUser();
 
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,6 +30,7 @@ const Login = () => {
       }
       const data = await response.json()
       login(data.user)
+      navigate("/")
     } catch (err) {
       console.log(err)
     }
@@ -46,7 +49,7 @@ const Login = () => {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 block bg-[#454545] w-full px-3 py-2border-2 border-white-600 rounded-md text-sm text-white placeholder-gray-400
+                className="mt-1 block bg-[#454545] w-full px-3 py-2 border-2 border-white-600 rounded-md text-sm text-white placeholder-gray-400
                            focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 required
               />

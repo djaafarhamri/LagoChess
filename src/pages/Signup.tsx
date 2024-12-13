@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useUser } from "../context/UserContext";
+import { useNavigate } from "react-router";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
@@ -7,6 +8,7 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const { login } = useUser();
 
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,6 +31,7 @@ const SignUp = () => {
       }
       const data = await response.json()
       login(data.user)
+      navigate("/")
     } catch (err) {
       console.log(err)
     }
