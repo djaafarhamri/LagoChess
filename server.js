@@ -49,26 +49,40 @@ const io = new Server(4001, {
 let onlineUsers = {}; // Store online users with socket IDs
 
 const quickPairingQueues = {};
+function broadcastQuickPairingQueue() {
+  // Create a sanitized version of the queue
+  const sanitizedQueues = {};
+  for (const [timer, players] of Object.entries(quickPairingQueues)) {
+    sanitizedQueues[timer] = players.map((player) => ({
+      username: player.username, // Include only serializable data
+    }));
+  }
 
+  io.emit("updateQueue", sanitizedQueues); // Emit the sanitized queue
+}
 const deleteUsernameFromAllQueues = (username) => {
   // First, remove the user from all queues
   for (const queueTimer in quickPairingQueues) {
-    const newQueue = quickPairingQueues[queueTimer].filter(entry => entry.username !== username);
-    
+    const newQueue = quickPairingQueues[queueTimer].filter(
+      (entry) => entry.username !== username
+    );
+
     // If the queue has changed, update it
     if (quickPairingQueues[queueTimer].length !== newQueue.length) {
       quickPairingQueues[queueTimer] = newQueue;
       console.log(`Removed ${username} from timer ${queueTimer}`);
     }
   }
-
-}
+  broadcastQuickPairingQueue();
+};
 
 function deleteUsernameFromAllQueuesAndReadd(username, timer, socket) {
   // First, remove the user from all queues
   for (const queueTimer in quickPairingQueues) {
-    const newQueue = quickPairingQueues[queueTimer].filter(entry => entry.username !== username);
-    
+    const newQueue = quickPairingQueues[queueTimer].filter(
+      (entry) => entry.username !== username
+    );
+
     // If the queue has changed, update it
     if (quickPairingQueues[queueTimer].length !== newQueue.length) {
       quickPairingQueues[queueTimer] = newQueue;
@@ -191,17 +205,6 @@ io.on("connection", (socket) => {
     await gameOver(gameId, "win", winner, reason);
   });
 
-  function broadcastQuickPairingQueue() {
-    // Create a sanitized version of the queue
-    const sanitizedQueues = {};
-    for (const [timer, players] of Object.entries(quickPairingQueues)) {
-      sanitizedQueues[timer] = players.map((player) => ({
-        username: player.username, // Include only serializable data
-      }));
-    }
-
-    io.emit("updateQueue", sanitizedQueues); // Emit the sanitized queue
-  }
   socket.on("requestQueue", () => {
     // Create a sanitized version of the queue
     const sanitizedQueues = {};
@@ -217,7 +220,7 @@ io.on("connection", (socket) => {
     if (!quickPairingQueues[timer]) {
       quickPairingQueues[timer] = [];
     }
-    
+
     if (!deleteUsernameFromAllQueuesAndReadd(username, timer)) {
       const queue = quickPairingQueues[timer];
 
@@ -242,12 +245,9 @@ io.on("connection", (socket) => {
     broadcastQuickPairingQueue();
   });
 
-  socket.on("cancelPairing", ({username}) => {
-    const deleted = deleteUsernameFromAllQueues(username)
-    if (deleted) {
-      broadcastQuickPairingQueue()
-    }
-  })
+  socket.on("cancelPairing", ({ username }) => {
+    deleteUsernameFromAllQueues(username);
+  });
 
   // Handle user disconnect
   socket.on("disconnect", () => {
