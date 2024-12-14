@@ -10,7 +10,7 @@ export default function Navbar() {
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   const logoutApi = async () => {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL ?? ""}/api/auth/logout`, {
       method: "GET",
       credentials: "include",
     });
