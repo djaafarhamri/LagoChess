@@ -17,7 +17,7 @@ const Chat = ({gameId}: {gameId: string | undefined}) => {
 
   useEffect(() => {
     const getChat = async () => {
-      const response = await fetch(`/api/chat/${gameId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/${gameId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

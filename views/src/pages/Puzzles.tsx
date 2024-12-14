@@ -56,7 +56,11 @@ const Puzzles: React.FC = () => {
     for (let move of pgnMoves) {
       const result = chess.move(move);
       if (!result) break;
-      parsedMoves.push({ san: result.san, fen: chess.fen(), index: parsedMoves.length });
+      parsedMoves.push({
+        san: result.san,
+        fen: chess.fen(),
+        index: parsedMoves.length,
+      });
     }
     setMoves(parsedMoves);
     setMoveIndex(parsedMoves.length - 1); // Start at the last move
@@ -65,10 +69,10 @@ const Puzzles: React.FC = () => {
   };
 
   const getPuzzle = async () => {
-    chess.reset()
-    setMoveIndex(0)
-    setPuzzleIndex(0)
-    setMoves([])
+    chess.reset();
+    setMoveIndex(0);
+    setPuzzleIndex(0);
+    setMoves([]);
     const res = await fetch("https://lichess.org/api/puzzle/next");
     if (!res.ok) {
       console.error("Error fetching puzzle");
@@ -83,31 +87,52 @@ const Puzzles: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (puzzle && puzzle?.puzzle.solution.length  === puzzleIndex ) {
-      getPuzzle()
+    if (puzzle && puzzle?.puzzle.solution.length === puzzleIndex) {
+      getPuzzle();
     }
-  }, [fen])
+  }, [fen]);
 
+  useEffect(() => {
+    if (chess.turn() !== orientation[0] && puzzle) {
+      const move = chess.move({
+        from: puzzle?.puzzle.solution[puzzleIndex][0] + puzzle?.puzzle.solution[puzzleIndex][1],
+        to: puzzle?.puzzle.solution[puzzleIndex][2] + puzzle?.puzzle.solution[puzzleIndex][3],
+        promotion: "q",
+      });
+      {
+        // Add the new move to the moves array
+        const newMove = {
+          san: move.san,
+          fen: chess.fen(),
+          index: moves.length,
+        };
+        setMoves((prev) => [...prev, newMove]);
+        setMoveIndex(moveIndex + 1);
+        setPuzzleIndex(puzzleIndex + 1);
+        setFen(chess.fen());
+      }
+    }
+  }, [chess.turn()]);
   // Handle piece drops for player moves
   function onDrop(sourceSquare: Square, targetSquare: Square) {
     if (moveIndex !== moves.length - 1) return false; // Only allow moves at the current position
-    
+
     const move = chess.move({
       from: sourceSquare,
       to: targetSquare,
       promotion: "q",
     });
     if (!move) return false;
-    if (puzzle?.puzzle.solution[puzzleIndex] === sourceSquare+targetSquare) {
+    if (puzzle?.puzzle.solution[puzzleIndex] === sourceSquare + targetSquare) {
       // Add the new move to the moves array
       const newMove = { san: move.san, fen: chess.fen(), index: moves.length };
       setMoves((prev) => [...prev, newMove]);
-      setMoveIndex(moveIndex+1);
-      setPuzzleIndex(puzzleIndex+1);
+      setMoveIndex(moveIndex + 1);
+      setPuzzleIndex(puzzleIndex + 1);
       setFen(chess.fen());
     } else {
-      chess.undo()
-      alert("wrong")
+      chess.undo();
+      alert("wrong");
     }
     return true;
   }

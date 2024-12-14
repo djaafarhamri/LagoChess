@@ -98,7 +98,7 @@ const Game: React.FC = () => {
 
   useEffect(() => {
     const getGame = async () => {
-      const response = await fetch(`/api/game/${gameId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/game/${gameId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
