@@ -244,18 +244,16 @@ io.on("connection", (socket) => {
     }
     broadcastQuickPairingQueue();
   });
-
+  
   socket.on("cancelPairing", ({ username }) => {
     deleteUsernameFromAllQueues(username);
   });
-
+  
   // Handle user disconnect
   socket.on("disconnect", () => {
+    deleteUsernameFromAllQueues(onlineUsers[socket.id])
     delete onlineUsers[socket.id];
-    for (const [timer, queue] of Object.entries(quickPairingQueues)) {
-      const index = queue.findIndex((player) => player.socket === socket);
-      if (index !== -1) queue.splice(index, 1);
-    }
+    broadcastQuickPairingQueue();
     io.emit("onlineUsers", Object.values(onlineUsers)); // Broadcast updated user list
   });
 });
