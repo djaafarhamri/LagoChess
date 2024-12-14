@@ -16,7 +16,7 @@ function App() {
   useEffect(() => {
     const getUser = async (login: (userData: UserType) => void) => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL ?? ""}/api/auth/getUser`, {
+        const response = await fetch(`${!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL === "undefined" ? "":import.meta.env.VITE_API_URL}/api/auth/getUser`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
