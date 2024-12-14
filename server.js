@@ -23,10 +23,7 @@ const PORT = process.env.PORT || 4000;
 // connect database
 
 mongoose
-  .connect(process.env.DB_HOST, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.DB_HOST)
   .then(() => console.log("data base connecte"))
   .catch((err) => {
     throw new Error(err);
@@ -41,6 +38,8 @@ app.use(
 app.use(cookieParser());
 app.use(express.static("public"));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'views', 'dist')));
 
 
 app.get("*", (req, res) => {
