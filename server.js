@@ -41,6 +41,12 @@ app.use(cookieParser());
 app.use(express.static("public"));
 app.use(express.json());
 
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "dist", "index.html"));
+});
+
+
 const io = new Server(4001, {
   cors: { origin: "*" }, // Allow cross-origin requests
 });
@@ -265,3 +271,5 @@ app.use("/api/chat", chatRoutes);
 server.listen(PORT, () => {
   console.log("listening on PORT : ", PORT);
 });
+
+module.exports = app
