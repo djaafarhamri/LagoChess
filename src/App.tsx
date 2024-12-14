@@ -7,6 +7,7 @@ import SignUp from './pages/Signup'
 import { useUser } from './context/UserContext'
 import { useEffect } from 'react'
 import { UserType } from './types/types'
+import Puzzles from './pages/Puzzles'
 
 function App() {
   const { user } = useUser()
@@ -35,6 +36,7 @@ function App() {
     <Routes >
       <Route path='/game/:id' element={user && <Game />} />
       <Route path='/' element={<Home />} />
+      <Route path='/puzzles' element={<Puzzles />} />
       <Route path='/login' element={<Login />} />
       <Route path='/signup' element={<SignUp />} />
     </Routes>
