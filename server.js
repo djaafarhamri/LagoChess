@@ -11,6 +11,7 @@ const authRoutes = require("./routes/authRoutes");
 const gameRoutes = require("./routes/gameRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const mongoose = require("mongoose");
+const path = require("path")
 const {
   makeMove,
   syncTimers,
