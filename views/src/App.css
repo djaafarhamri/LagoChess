@@ -1,0 +1,35 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* App.module.css */
+.background {
+    background: linear-gradient(to bottom, #323232, #121212);
+    height: 100vh;
+  }
+
+
+/* Custom Scrollbar Style */
+::-webkit-scrollbar {
+  width: 8px;  /* Width of the scrollbar */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #555;  /* Grayish color for the scrollbar thumb */
+  border-radius: 4px;      /* Rounded corners for the scrollbar thumb */
+  border: 2px solid #444;  /* Subtle border to make the thumb stand out */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #888;  /* Darker color when hovered */
+}
+
+::-webkit-scrollbar-track {
+  background: #454545;  /* Light background color for the track */
+  border-radius: 4px;    /* Rounded corners for the track */
+}
+
+::-webkit-scrollbar-track-piece {
+  background: #454545;  /* Same light background for track pieces */
+}
