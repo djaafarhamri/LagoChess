@@ -11,6 +11,9 @@
     "socket.io": "^4.8.1",
     "validator": "^13.12.0"
   },
+  "scripts": {
+    "setup": "npm install && cd views && npm install && npm run build"
+  },
   "devDependencies": {
     "nodemon": "^3.1.7"
   }

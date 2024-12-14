@@ -18,7 +18,7 @@ const Timer = ({
     seconds: currentTime % 60,
   });
 
-  const intervalRef = useRef<number | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeLeftRef = useRef(currentTime); // Tracks time without causing re-renders
 
   useEffect(() => {
