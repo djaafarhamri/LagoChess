@@ -16,7 +16,7 @@ function App() {
   useEffect(() => {
     const getUser = async (login: (userData: UserType) => void) => {
       try {
-        const response = await fetch("http://localhost:4000/api/auth/getUser", {
+        const response = await fetch("/api/auth/getUser", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

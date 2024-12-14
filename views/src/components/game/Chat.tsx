@@ -17,7 +17,7 @@ const Chat = ({gameId}: {gameId: string | undefined}) => {
 
   useEffect(() => {
     const getChat = async () => {
-      const response = await fetch(`http://localhost:4000/api/chat/${gameId}`, {
+      const response = await fetch(`/api/chat/${gameId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

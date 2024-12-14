@@ -10,7 +10,7 @@ export default function Navbar() {
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   const logoutApi = async () => {
-    const res = await fetch("http://localhost:4000/api/auth/logout", {
+    const res = await fetch("/api/auth/logout", {
       method: "GET",
       credentials: "include",
     });

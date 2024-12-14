@@ -98,7 +98,7 @@ const Game: React.FC = () => {
 
   useEffect(() => {
     const getGame = async () => {
-      const response = await fetch(`http://localhost:4000/api/game/${gameId}`, {
+      const response = await fetch(`/api/game/${gameId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

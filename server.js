@@ -48,7 +48,7 @@ app.get("*", (req, res) => {
 });
 
 
-const io = new Server(4001, {
+const io = new Server(server, {
   cors: { origin: "*" }, // Allow cross-origin requests
 });
 

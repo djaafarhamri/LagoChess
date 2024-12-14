@@ -1,6 +1,6 @@
 import socketio from "socket.io-client";
 import React from "react";
-const ENDPOINT = `http://localhost:4001`;
+const ENDPOINT = '/'
 export const socket = socketio(ENDPOINT, {
     withCredentials: true,
     transports: ["websocket"],  // Add both transports
