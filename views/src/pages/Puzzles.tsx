@@ -3,6 +3,7 @@ import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import {
   BoardOrientation,
+  PromotionPieceOption,
   Square,
 } from "react-chessboard/dist/chessboard/types";
 import PuzzleInfoTab from "../components/puzzles/PuzzleInfoTab";
@@ -93,23 +94,31 @@ const Puzzles: React.FC = () => {
   }, [fen]);
 
   useEffect(() => {
-    if (chess.turn() !== orientation[0] && puzzle) {
-      const move = chess.move({
-        from: puzzle?.puzzle.solution[puzzleIndex][0] + puzzle?.puzzle.solution[puzzleIndex][1],
-        to: puzzle?.puzzle.solution[puzzleIndex][2] + puzzle?.puzzle.solution[puzzleIndex][3],
-        promotion: "q",
-      });
-      {
-        // Add the new move to the moves array
-        const newMove = {
-          san: move.san,
-          fen: chess.fen(),
-          index: moves.length,
-        };
-        setMoves((prev) => [...prev, newMove]);
-        setMoveIndex(moveIndex + 1);
-        setPuzzleIndex(puzzleIndex + 1);
-        setFen(chess.fen());
+    if (puzzle) {
+      if (puzzleIndex <= puzzle?.puzzle.solution.length - 1) {
+        if (chess.turn() !== orientation[0] && puzzle) {
+          const move = chess.move({
+            from:
+              puzzle?.puzzle.solution[puzzleIndex][0] +
+              puzzle?.puzzle.solution[puzzleIndex][1],
+            to:
+              puzzle?.puzzle.solution[puzzleIndex][2] +
+              puzzle?.puzzle.solution[puzzleIndex][3],
+            promotion: "q",
+          });
+          {
+            // Add the new move to the moves array
+            const newMove = {
+              san: move.san,
+              fen: chess.fen(),
+              index: moves.length,
+            };
+            setMoves((prev) => [...prev, newMove]);
+            setMoveIndex(moveIndex + 1);
+            setPuzzleIndex(puzzleIndex + 1);
+            setFen(chess.fen());
+          }
+        }
       }
     }
   }, [chess.turn()]);
@@ -120,10 +129,43 @@ const Puzzles: React.FC = () => {
     const move = chess.move({
       from: sourceSquare,
       to: targetSquare,
-      promotion: "q",
     });
     if (!move) return false;
-    if (puzzle?.puzzle.solution[puzzleIndex] === sourceSquare + targetSquare) {
+    if (
+      puzzle?.puzzle.solution[puzzleIndex] ===
+      sourceSquare + targetSquare
+    ) {
+      // Add the new move to the moves array
+      const newMove = { san: move.san, fen: chess.fen(), index: moves.length };
+      setMoves((prev) => [...prev, newMove]);
+      setMoveIndex(moveIndex + 1);
+      setPuzzleIndex(puzzleIndex + 1);
+      setFen(chess.fen());
+    } else {
+      chess.undo();
+      alert("wrong");
+    }
+    return true;
+  }
+
+  function onPromo(
+    piece?: PromotionPieceOption,
+    promoteFromSquare?: Square,
+    promoteToSquare?: Square
+  ) {
+    if (!promoteFromSquare || ! promoteToSquare || !piece) return false;
+    if (moveIndex !== moves.length - 1) return false; // Only allow moves at the current position
+
+    const move = chess.move({
+      from: promoteFromSquare,
+      to: promoteToSquare,
+      promotion: piece[1].toLowerCase()
+    });
+    if (!move) return false;
+    if (
+      puzzle?.puzzle.solution[puzzleIndex] ===
+      promoteFromSquare + promoteToSquare + piece[1].toLowerCase()
+    ) {
       // Add the new move to the moves array
       const newMove = { san: move.san, fen: chess.fen(), index: moves.length };
       setMoves((prev) => [...prev, newMove]);
@@ -152,7 +194,7 @@ const Puzzles: React.FC = () => {
             id={puzzle.puzzle.id}
             position={fen}
             onPieceDrop={onDrop}
-            // onPromotionPieceSelect={onPromo}
+            onPromotionPieceSelect={onPromo}
             boardWidth={640}
             boardOrientation={orientation}
             arePiecesDraggable={moveIndex === moves.length - 1} // Enable drag only at the current move
