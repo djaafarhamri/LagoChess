@@ -181,7 +181,7 @@ const MoveHistory = ({
 
       <div
         ref={scrollContainerRef}
-        className="grid grid-cols-5 max-h-[540px] overflow-y-auto"
+        className="grid grid-cols-5 max-h-[500px] overflow-y-auto"
       >
         <ul className="bg-[#454545]">
           {Array.from({ length: Math.ceil((moves.length - 1) / 2) }).map(

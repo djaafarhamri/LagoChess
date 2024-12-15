@@ -1,6 +1,8 @@
+import { PuzzleType } from "../../pages/Puzzles";
 import MoveHistory from "../game/Moves";
 
 type Props = {
+  puzzle: PuzzleType | null;
   moves: {
     san: string;
     fen: string;
@@ -23,6 +25,7 @@ type Props = {
 };
 
 const PuzzleInfoTab = ({
+  puzzle,
   moves,
   fen,
   setFen,
@@ -40,7 +43,7 @@ const PuzzleInfoTab = ({
 }: Props) => {
   return (
     <div className="flex flex-col w-full mr-auto">
-      <div className="w-full  h-full">
+      <div className="w-full h-full">
         <MoveHistory
           moves={moves}
           fen={fen}
@@ -49,36 +52,39 @@ const PuzzleInfoTab = ({
           setMoveIndex={setMoveIndex}
         />
       </div>
+      <div className="w-full text-white font-bold text-3xl text-center p-2">
+        Puzzle Rating : {puzzle?.puzzle.rating}
+      </div>
       <div className="w-full flex justify-center items-center">
         {isFinished && (
-          <button className="bg-green-500 p-3 w-1/3 rounded-3xl" onClick={next}>
-            next
+          <button className="bg-green-500 p-3 w-1/3 rounded-3xl font-bold" onClick={next}>
+            NEXT PUZZLE
           </button>
         )}
         {correctSquare && !isFinished && (
-          <button className="bg-green-500 p-3 w-1/3  rounded-3xl">
-            Correct
+          <button className="bg-green-500 p-3 w-1/3 rounded-3xl font-bold">
+            CORRECT MOVE
           </button>
         )}
         {wrongSquare && (
-          <button className="bg-red-500 p-3 w-1/3  rounded-3xl" onClick={retry}>
-            retry
+          <button className="bg-red-500 p-3 w-1/3 rounded-3xl font-bold" onClick={retry}>
+            WRONG MOVE! RETRY
           </button>
         )}
         {!hint && !isFinished && isMyturn && (
           <button
-            className="bg-blue-500 p-3 w-1/3  rounded-3xl"
+            className="bg-blue-500 p-3 w-1/3 rounded-3xl font-bold"
             onClick={showHint}
           >
-            hint
+            GET A HINT
           </button>
         )}
         {hint && (
           <button
-            className="bg-blue-500 p-3 w-1/3  rounded-3xl"
+            className="bg-blue-500 p-3 w-1/3  rounded-3xl font-bold"
             onClick={showMove}
           >
-            move
+            SHOW THE MOVE
           </button>
         )}
       </div>

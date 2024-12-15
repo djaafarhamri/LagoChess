@@ -10,7 +10,7 @@ import {
 } from "react-chessboard/dist/chessboard/types";
 import PuzzleInfoTab from "../components/puzzles/PuzzleInfoTab";
 
-type PuzzleType = {
+export type PuzzleType = {
   game: {
     clock: string;
     id: string;
@@ -55,6 +55,7 @@ const Puzzles: React.FC = () => {
   const [isFinished, setIsFinished] = useState<boolean>(false);
   const [hint, setHint] = useState<string>("");
   const [showMoveArrow, setShowMoveArrow] = useState<string>("");
+  const [rating, setRating] = useState(1500);
 
   // Parse PGN and initialize moves and FENs
   const playGameFromPGN = (pgn: string) => {
@@ -88,7 +89,24 @@ const Puzzles: React.FC = () => {
     setIsFinished(false);
     setCorrectSquare("");
     setWrongSquare("");
-    const res = await fetch("https://lichess.org/api/puzzle/next");
+    const resPuzzleId = await fetch(
+      `https://chess-puzzles.p.rapidapi.com/?rating=${rating}&count=1`,
+      {
+        headers: {
+          "x-rapidapi-key":
+            "56425d03c3msh2b1bb660a2f8e81p16d464jsnd51f52947166",
+          "x-rapidapi-host": "chess-puzzles.p.rapidapi.com",
+        },
+      }
+    );
+    if (!resPuzzleId.ok) {
+      console.error("Error fetching puzzle");
+      return;
+    }
+    const resPuzzleIdData = await resPuzzleId.json();
+    const res = await fetch(
+      `https://lichess.org/api/puzzle/${resPuzzleIdData.puzzles[0].puzzleid}`
+    );
     if (!res.ok) {
       console.error("Error fetching puzzle");
       return;
@@ -190,6 +208,9 @@ const Puzzles: React.FC = () => {
       setPuzzleIndex(puzzleIndex + 1);
       setFen(chess.fen());
       setCorrectSquare(promoteFromSquare);
+      if (puzzle && puzzle?.puzzle.solution.length === puzzleIndex + 1) {
+        setIsFinished(true);
+      }
     } else {
       setFen(chess.fen());
       setWrongSquare(promoteToSquare);
@@ -223,32 +244,44 @@ const Puzzles: React.FC = () => {
       return { [correctSquare as Square]: { backgroundColor: "#74C365" } };
     if (wrongSquare !== "")
       return { [wrongSquare as Square]: { backgroundColor: "#FA8072" } };
-    if (hint !== "") return { [hint as Square]: { backgroundColor: "#4169E1" } };
+    if (hint !== "")
+      return { [hint as Square]: { backgroundColor: "#4169E1" } };
     return {}; // Return an empty object if none of the conditions match
   };
-  const customStyles = useMemo(() => colorSquare(), [correctSquare, wrongSquare, hint]);
+  const customStyles = useMemo(
+    () => colorSquare(),
+    [correctSquare, wrongSquare, hint]
+  );
 
   const showArrow = () => {
     if (showMoveArrow)
-      return [[showMoveArrow[0] + showMoveArrow[1], showMoveArrow[2] + showMoveArrow[3]] as Arrow];
-    return []
+      return [
+        [
+          showMoveArrow[0] + showMoveArrow[1],
+          showMoveArrow[2] + showMoveArrow[3],
+        ] as Arrow,
+      ];
+    return [];
   };
   const customArrow = useMemo(() => showArrow(), [showMoveArrow]);
 
   const showMove = () => {
     if (puzzle) {
-      setShowMoveArrow(puzzle?.puzzle.solution[puzzleIndex])
+      setShowMoveArrow(puzzle?.puzzle.solution[puzzleIndex]);
     }
-  }
+  };
   const showHint = () => {
     if (puzzle) {
-      setHint(puzzle?.puzzle.solution[puzzleIndex][0] + puzzle?.puzzle.solution[puzzleIndex][1])
+      setHint(
+        puzzle?.puzzle.solution[puzzleIndex][0] +
+          puzzle?.puzzle.solution[puzzleIndex][1]
+      );
     }
-  }
+  };
 
-  return (
-    <div className="container flex justify-around mx-auto px-4 py-8">
-      {puzzle && (
+  if (puzzle) {
+    return (
+      <div className="container flex justify-around mx-auto px-4 py-8">
         <div className="flex flex-col justify-center">
           <Chessboard
             id={puzzle.puzzle.id}
@@ -263,26 +296,32 @@ const Puzzles: React.FC = () => {
             customSquareStyles={customStyles}
           />
         </div>
-      )}
-      <PuzzleInfoTab
-        moves={moves}
-        fen={fen}
-        setFen={setFen}
-        moveIndex={moveIndex}
-        setMoveIndex={setMoveIndex}
-        goToMove={goToMove}
-        retry={retry}
-        next={getPuzzle}
-        isFinished={isFinished}
-        wrongSquare={wrongSquare}
-        correctSquare={correctSquare}
-        showMove={showMove}
-        hint={hint}
-        showHint={showHint}
-        isMyturn={chess.turn() === mySide[0]}
-      />
-    </div>
-  );
+        <PuzzleInfoTab
+          puzzle={puzzle}
+          moves={moves}
+          fen={fen}
+          setFen={setFen}
+          moveIndex={moveIndex}
+          setMoveIndex={setMoveIndex}
+          goToMove={goToMove}
+          retry={retry}
+          next={() => {
+            setRating(prev => prev + 100);
+            getPuzzle();
+          }}
+          isFinished={isFinished}
+          wrongSquare={wrongSquare}
+          correctSquare={correctSquare}
+          showMove={showMove}
+          hint={hint}
+          showHint={showHint}
+          isMyturn={chess.turn() === mySide[0]}
+        />
+      </div>
+    );
+  } else {
+    return <div>loading...</div>;
+  }
 };
 
 export default Puzzles;
