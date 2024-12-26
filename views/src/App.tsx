@@ -8,6 +8,8 @@ import { useUser } from './context/UserContext'
 import { useEffect } from 'react'
 import { UserType } from './types/types'
 import Puzzles from './pages/Puzzles'
+import Analyze from './pages/Analyze'
+import PrivateRoute from './components/Private'
 
 function App() {
   const { user } = useUser()
@@ -34,9 +36,10 @@ function App() {
 
   return (
     <Routes >
-      <Route path='/game/:id' element={user && <Game />} />
-      <Route path='/' element={<Home />} />
-      <Route path='/puzzles' element={<Puzzles />} />
+      <Route path='/game/:id' element={<PrivateRoute><Game /></PrivateRoute>} />
+      <Route path='/' element={<PrivateRoute><Home /></PrivateRoute>} />
+      <Route path='/puzzles' element={<PrivateRoute><Puzzles /></PrivateRoute>} />
+      <Route path='/analyze/:id' element={<PrivateRoute><Analyze /></PrivateRoute>} />
       <Route path='/login' element={<Login />} />
       <Route path='/signup' element={<SignUp />} />
     </Routes>

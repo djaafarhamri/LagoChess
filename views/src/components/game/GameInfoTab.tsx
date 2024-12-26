@@ -1,3 +1,4 @@
+import { Chess } from "chess.js";
 import { GameType } from "../../types/types";
 import Captures from "./Captures";
 import MoveHistory from "./Moves";
@@ -33,6 +34,7 @@ function calculateEvaluation(
 
 type Props = {
   game: GameType | undefined;
+  chess: Chess;
   orientation: string;
   opTimerTime: number;
   opTimerActive: boolean;
@@ -56,6 +58,7 @@ type Props = {
 
 const GameInfoTab = ({
   game,
+  chess,
   orientation,
   opTimerTime,
   opTimerActive,
@@ -121,11 +124,13 @@ const GameInfoTab = ({
       )}
       <div className="w-full  h-full">
         <MoveHistory
+          chess={chess}
           moves={moves}
           fen={fen}
           setFen={setFen}
           moveIndex={moveIndex}
           setMoveIndex={setMoveIndex}
+          showBar={true}
         />
       </div>
       {orientation === "white" ? (

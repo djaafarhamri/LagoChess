@@ -1,109 +1,199 @@
 const Game = require("../models/games");
 const User = require("../models/users");
 const calculateTimers = require("../utils/calculateTimers");
+const { spawn } = require("child_process");
 
-module.exports = {
-  // Create a new game
-  createGame: async (opponant, challenger, timer) => {
-    try {
-      const white = await User.findOne({ username: opponant });
-      const black = await User.findOne({ username: challenger });
-      const newGame = new Game({
-        white,
-        black,
-        timers: {
-          white: parseInt(timer?.split("+")[0]) * 60,
-          black: parseInt(timer?.split("+")[0]) * 60,
-        },
-      });
-      await newGame.save();
-      return ({ success: true, game: newGame });
-    } catch (error) {
-      return ({ success: false, message: error.message });
-    }
-  },
+let stockfishProcesses = {}; // Store Stockfish instances by roomId or gameId
 
-  // Make a move
-  makeMove: async (gameId, san, index, fen) => {
-    try {
-      const game = await Game.findById(gameId);
-      if (!game) {
-        return { success: false, message: "Game not found" };
-      }
-      // Update moves and turn
-      game.moves.push({ san, fen, index });
-      game.fen = fen;
-      const timers = calculateTimers(game);
-      if (game.currTurn === "w") {
-        game.timers.white = timers.white;
-      } else {
-        game.timers.black = timers.black;
-      }
+// Create a new game
+module.exports.createGame = async (opponant, challenger, timer) => {
+  try {
+    const white = await User.findOne({ username: opponant });
+    const black = await User.findOne({ username: challenger });
+    const newGame = new Game({
+      white,
+      black,
+      timers: {
+        white: parseInt(timer?.split("+")[0]) * 60,
+        black: parseInt(timer?.split("+")[0]) * 60,
+      },
+    });
+    await newGame.save();
+    return { success: true, game: newGame };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
 
-      game.currTurn = game.currTurn === "w" ? "b" : "w";
-      game.lastMoveTimestamp = Date.now();
-      await game.save();
-      return { success: true, game };
-    } catch (error) {
-      return { success: false, message: error.message };
-    }
-  },
-
-  // Make a move
-  gameOver: async (gameId, result, winner, reason) => {
-    try {
-      const game = await Game.findById(gameId);
-      if (!game) {
-        return { success: false, message: "Game not found" };
-      }
-      // Update moves and turn
-      game.status = "finished";
-      game.result = result;
-      game.winner = winner;
-      game.reason = reason;
-      await game.save();
-      return { success: true, game };
-    } catch (error) {
-      return { success: false, message: error.message };
-    }
-  },
-
-  syncTimers: async (gameId) => {
+// Make a move
+module.exports.makeMove = async (gameId, san, index, fen) => {
+  try {
     const game = await Game.findById(gameId);
-    const white = await User.findById(game.white);
-    const black = await User.findById(game.black);
-    if (game.status !== "finished") {
-      const timers = calculateTimers(game);
-      return {
-        timers,
-        lastMoveTimestamp: game.lastMoveTimestamp,
-        white: white.username,
-        black: black.username,
-      };
+    if (!game) {
+      return { success: false, message: "Game not found" };
     }
+    // Update moves and turn
+    game.moves.push({ san, fen, index });
+    game.fen = fen;
+    const timers = calculateTimers(game);
+    if (game.currTurn === "w") {
+      game.timers.white = timers.white;
+    } else {
+      game.timers.black = timers.black;
+    }
+
+    game.currTurn = game.currTurn === "w" ? "b" : "w";
+    game.lastMoveTimestamp = Date.now();
+    await game.save();
+    return { success: true, game };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+// Make a move
+module.exports.gameOver = async (gameId, result, winner, reason) => {
+  try {
+    const game = await Game.findById(gameId);
+    if (!game) {
+      return { success: false, message: "Game not found" };
+    }
+    // Update moves and turn
+    game.status = "finished";
+    game.result = result;
+    game.winner = winner;
+    game.reason = reason;
+    await game.save();
+    return { success: true, game };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+module.exports.syncTimers = async (gameId) => {
+  const game = await Game.findById(gameId);
+  const white = await User.findById(game.white);
+  const black = await User.findById(game.black);
+  if (game.status !== "finished") {
+    const timers = calculateTimers(game);
     return {
-      timers: game.timers,
+      timers,
       lastMoveTimestamp: game.lastMoveTimestamp,
       white: white.username,
       black: black.username,
     };
-  },
+  }
+  return {
+    timers: game.timers,
+    lastMoveTimestamp: game.lastMoveTimestamp,
+    white: white.username,
+    black: black.username,
+  };
+};
 
-  // Get game details
-  getGame: async (req, res) => {
-    try {
-      const { gameId } = req.params;
-      const game = await Game.findById(gameId)
-        .populate("white")
-        .populate("black");
-      if (!game) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Game not found" });
-      }
-      res.status(200).json({ success: true, game });
-    } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+// Get game details
+module.exports.getGame = async (req, res) => {
+  try {
+    const { gameId } = req.params;
+    const game = await Game.findById(gameId)
+      .populate("white")
+      .populate("black");
+    if (!game) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
     }
-  },
+    res.status(200).json({ success: true, game });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+module.exports.startStockfishForGame = (roomId) => {
+  if (!stockfishProcesses[roomId]) {
+    const stockfishPath =
+      "C:/Users/PC-CLICK-PLUS/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe";
+    const stockfishProcess = spawn(stockfishPath);
+    stockfishProcess.stdin.write("uci\n"); // Initialize Stockfish
+    stockfishProcesses[roomId] = stockfishProcess;
+  }
+};
+module.exports.getEval = (fen, roomId, io) => {
+  if (!stockfishProcesses[roomId]) {
+    console.log("Stockfish is not running for this game");
+    return io.in(roomId).emit("evalError", {
+      message: "Stockfish is not running for this game",
+    });
+  }
+  console.log(fen);
+  const stockfishProcess = stockfishProcesses[roomId];
+  let output = "";
+  let evaluation = null;
+  let bestMove = "";
+  let principalVariation = "";
+
+  // Send the fen and moves to Stockfish
+  console.log(`position fen${fen}\n`)
+  stockfishProcess.stdin.write(`position fen ${fen}\n`);
+  stockfishProcess.stdin.write("go depth 15\n");
+
+  // Capture Stockfish's output
+  stockfishProcess.stdout.on("data", (data) => {
+    const dataString = data.toString();
+    output += dataString;
+
+    // Extract evaluation score (centipawn)
+    const evalMatch = dataString.match(/info .* score cp (-?\d+)/);
+    if (evalMatch) {
+      evaluation = parseInt(evalMatch[1], 10) / 100; // Convert to pawns
+    }
+
+    // Extract best move
+    const bestMoveMatch = dataString.match(/bestmove\s(\S+)/);
+    if (bestMoveMatch) {
+      bestMove = bestMoveMatch[1];
+    }
+
+    // Extract principal variation (PV)
+    const pvMatch = dataString.match(/info .* pv (.+)/);
+    if (pvMatch) {
+      principalVariation = pvMatch[1];
+    }
+
+    // Emit evaluation and best move to the room
+    console.log("evalResult", {
+      evaluation,
+      bestMove,
+      principalVariation,
+    });
+    io.in(roomId).emit("evalResult", {
+      evaluation,
+      bestMove,
+      principalVariation,
+    });
+  });
+
+  // Log all process events to debug
+  stockfishProcess.on("exit", (code, signal) => {
+    console.log(
+      `Stockfish process exited for game ${roomId} with code ${code}, signal ${signal}`
+    );
+  });
+};
+
+// Function to stop Stockfish for a specific roomId
+module.exports.stopStockfishForGame = (roomId) => {
+  const stockfishProcess = stockfishProcesses[roomId];
+  if (stockfishProcess) {
+    console.log(`Stopping Stockfish for roomId: ${roomId}`);
+    stockfishProcess.stdin.write("quit\n"); // Quit Stockfish gracefully
+    stockfishProcess.kill(); // Force kill the process if necessary
+    delete stockfishProcesses[roomId];
+  }
+};
+// Function to stop all Stockfish processes (for cleanup)
+module.exports.stopAllStockfishProcesses = () => {
+  console.log("Stopping all Stockfish processes...");
+  for (let roomId in stockfishProcesses) {
+    this.stopStockfishForGame(roomId);
+  }
 };

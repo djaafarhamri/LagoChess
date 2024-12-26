@@ -11,12 +11,18 @@ const authRoutes = require("./routes/authRoutes");
 const gameRoutes = require("./routes/gameRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const mongoose = require("mongoose");
-const path = require("path")
+const path = require("path");
 const {
   makeMove,
   syncTimers,
   gameOver,
   createGame,
+  cleanup,
+  startStockfish,
+  getEval,
+  stopAllStockfishProcesses,
+  startStockfishForGame,
+  stopStockfishForGame,
 } = require("./controllers/gameController");
 const { sendMessage } = require("./controllers/chatController");
 const PORT = process.env.PORT || 4000;
@@ -39,13 +45,11 @@ app.use(cookieParser());
 app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'views', 'dist')));
+app.use(express.static(path.join(__dirname, "views", "dist")));
 
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "dist", "index.html"));
-});
-
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "views", "dist", "index.html"));
+// });
 
 const io = new Server(server, {
   cors: { origin: "*" }, // Allow cross-origin requests
@@ -250,19 +254,51 @@ io.on("connection", (socket) => {
     }
     broadcastQuickPairingQueue();
   });
-  
+
   socket.on("cancelPairing", ({ username }) => {
     deleteUsernameFromAllQueues(username);
   });
-  
+
+  // When a new game starts, start Stockfish for that game
+  socket.on("startGame", ({ roomId }) => {
+    console.log("startGame", roomId);
+    socket.join(roomId)
+    startStockfishForGame(roomId);
+  });
+
+  // When a player makes a move, get evaluation using Stockfish for the specific game
+  socket.on("request-eval", ({ fen, roomId }) => {
+    console.log("request-eval", { fen, roomId });
+    getEval(fen, roomId, io);
+  });
+
+  // To stop a specific game's Stockfish process (e.g., when the game ends or on specific request)
+  socket.on("stopGame", ({ roomId }) => {
+    console.log("stopGame", roomId);
+    socket.leave(roomId)
+    stopStockfishForGame(roomId);
+  });
+
   // Handle user disconnect
   socket.on("disconnect", () => {
-    deleteUsernameFromAllQueues(onlineUsers[socket.id])
+    deleteUsernameFromAllQueues(onlineUsers[socket.id]);
     delete onlineUsers[socket.id];
     broadcastQuickPairingQueue();
     io.emit("onlineUsers", Object.values(onlineUsers)); // Broadcast updated user list
   });
 });
+
+// Catch termination signals (e.g., from a shutdown or restart)
+process.on("SIGINT", () => {
+  console.log("Server shutting down...");
+  stopAllStockfishProcesses(); // Stop all Stockfish processes when the server shuts down
+  process.exit(); // Exit the process after cleanup
+}); // Handle Ctrl + C
+process.on("SIGTERM", () => {
+  console.log("Server terminating...");
+  stopAllStockfishProcesses(); // Stop all Stockfish processes when server is terminated
+  process.exit(); // Exit the process after cleanup
+}); // Handle termination signal (e.g., from a system shutdown)
 
 app.use("/api/auth", authRoutes);
 app.use("/api/game", gameRoutes);
@@ -272,4 +308,4 @@ server.listen(PORT, () => {
   console.log("listening on PORT : ", PORT);
 });
 
-module.exports = app
+module.exports = app;

@@ -98,7 +98,7 @@ const Game: React.FC = () => {
 
   useEffect(() => {
     const getGame = async () => {
-      const response = await fetch(`${!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL === "undefined" ? "":import.meta.env.VITE_API_URL}/api/game/${gameId}`, {
+      const response = await fetch(`${!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL === "undefined" ? "":import.meta.env.VITE_API_URL}/api/game/game/${gameId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -257,7 +257,7 @@ const Game: React.FC = () => {
           move,
           fen: chess.fen(),
           san: result.san,
-          index: moves.length - 1,
+          index: moves.length,
         });
         if (offeredDraw) {
           handleDeclineDraw();
@@ -274,6 +274,7 @@ const Game: React.FC = () => {
   useEffect(() => {
     // Add the event listener
     socket.on("move-made", handleMove);
+    console.log(moves)
 
     // Clean up the event listener on dependency change
     return () => {
@@ -493,6 +494,7 @@ const Game: React.FC = () => {
       )}
       <GameInfoTab
         game={game}
+        chess={chess}
         orientation={orientation}
         opTimerTime={opTimerTime}
         opTimerActive={opTimerActive}
