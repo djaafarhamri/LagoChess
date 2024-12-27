@@ -8,6 +8,7 @@ export type UserType = {
 }
 
 export type GameType = {
+    _id?: string,
     white: string | UserType,
     black: string | UserType,
     status: string,

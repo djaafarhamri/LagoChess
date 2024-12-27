@@ -10,9 +10,9 @@ import { UserType } from './types/types'
 import Puzzles from './pages/Puzzles'
 import Analyze from './pages/Analyze'
 import PrivateRoute from './components/Private'
+import GamesList from './pages/GamesList'
 
 function App() {
-  const { user } = useUser()
 
   const { login } = useUser();
   useEffect(() => {
@@ -40,6 +40,7 @@ function App() {
       <Route path='/' element={<PrivateRoute><Home /></PrivateRoute>} />
       <Route path='/puzzles' element={<PrivateRoute><Puzzles /></PrivateRoute>} />
       <Route path='/analyze/:id' element={<PrivateRoute><Analyze /></PrivateRoute>} />
+      <Route path='/analyze' element={<PrivateRoute><GamesList /></PrivateRoute>} />
       <Route path='/login' element={<Login />} />
       <Route path='/signup' element={<SignUp />} />
     </Routes>

@@ -1,7 +1,8 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import NavbarLogo from "./NavLogo";
 import { useUser } from "../context/UserContext";
+import github from "../assets/github-mark-white.png";
 
 export default function Navbar() {
   const { user, logout } = useUser();
@@ -10,14 +11,22 @@ export default function Navbar() {
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   const logoutApi = async () => {
-    const res = await fetch(`${!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL === "undefined" ? "":import.meta.env.VITE_API_URL}/api/auth/logout`, {
-      method: "GET",
-      credentials: "include",
-    });
+    const res = await fetch(
+      `${
+        !import.meta.env.VITE_API_URL ||
+        import.meta.env.VITE_API_URL === "undefined"
+          ? ""
+          : import.meta.env.VITE_API_URL
+      }/api/auth/logout`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
     if (!res.ok) {
       alert("error");
     } else {
-      setIsDropdownOpen(false)
+      setIsDropdownOpen(false);
       logout();
     }
   };
@@ -30,7 +39,7 @@ export default function Navbar() {
       </div>
 
       {/* Navigation Links */}
-      <ul className="flex flex-2 justify-center space-x-4 list-none">
+      <ul className="flex flex-2 justify-center items-center space-x-4 list-none">
         <li>
           <Link
             to="/"
@@ -49,18 +58,17 @@ export default function Navbar() {
         </li>
         <li>
           <Link
-            to="/learn"
+            to="/analyze"
             className="px-4 py-2 border border-gray-300 rounded-md shadow-md text-white hover:text-gray-300 hover:shadow-lg"
           >
-            Learn
+            Analyze
           </Link>
         </li>
         <li>
-          <Link
-            to="/about"
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-md text-white hover:text-gray-300 hover:shadow-lg"
-          >
-            About
+          <Link to="https://github.com/djaafarhamri/LagoChess" target="_blank">
+            <div className="px-4 py-2 border border-gray-300 rounded-md shadow-md hover:shadow-lg cursor-pointer">
+              <img src={github} alt="github" width={20} height={20} />
+            </div>
           </Link>
         </li>
       </ul>

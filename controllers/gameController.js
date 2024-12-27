@@ -108,6 +108,27 @@ module.exports.getGame = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+// Get game details
+module.exports.getGameByUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const games = await Game.find({$or: [{black: id}, {white: id}]})
+      .populate("white")
+      .populate("black");
+    if (!games) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
+    }
+    res.status(200).json({ success: true, games });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 module.exports.startStockfishForGame = (roomId) => {
   if (!stockfishProcesses[roomId]) {
     const stockfishPath =

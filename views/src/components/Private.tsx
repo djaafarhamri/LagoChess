@@ -40,7 +40,6 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   }, [login]);
   if (loading) return <div>loading...</div>
   if (user) return children;
-  navigate("/login");
 };
 
 export default PrivateRoute;
