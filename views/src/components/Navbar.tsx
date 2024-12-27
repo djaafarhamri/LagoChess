@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { useState } from "react";
 import NavbarLogo from "./NavLogo";
 import { useUser } from "../context/UserContext";

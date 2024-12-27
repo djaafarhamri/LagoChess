@@ -1,3 +1,4 @@
+import { Chess } from "chess.js";
 import { PuzzleType } from "../../pages/Puzzles";
 import MoveHistory from "../game/Moves";
 
@@ -45,6 +46,8 @@ const PuzzleInfoTab = ({
     <div className="flex flex-col w-full mr-auto">
       <div className="w-full h-full">
         <MoveHistory
+          chess={new Chess()}
+          showBar={false}
           moves={moves}
           fen={fen}
           setFen={setFen}
