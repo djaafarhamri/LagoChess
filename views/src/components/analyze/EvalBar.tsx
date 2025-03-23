@@ -38,32 +38,52 @@ const EvalBar = ({
   const opPercentage = 100 - MyPercentage;
 
   return (
-    <div className="w-12 h-[640px] flex flex-col border border-gray-300 bg-gray-100 relative">
+    <div className="w-8 h-full flex flex-col border border-[#ffd700] border-opacity-20 rounded-lg overflow-hidden mr-4">
       {orientation === "black" ? (
         <>
           <div
-            className="bg-white transition-height duration-500 ease-in-out"
+            className="bg-white bg-opacity-90 transition-all duration-200 ease-in-out relative group"
             style={{ height: `${MyPercentage}%` }}
-            title={`White Advantage: ${evalScore*-1}`}
-          ></div>
+          >
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-70">
+              <span className="text-xs font-mono text-[#ffd700] transform -rotate-90">
+                {(evalScore * -1).toFixed(1)}
+              </span>
+            </div>
+          </div>
           <div
-            className="bg-black transition-height duration-500 ease-in-out"
+            className="bg-[#1a1a1a] transition-all duration-200 ease-in-out relative group"
             style={{ height: `${opPercentage}%` }}
-            title={`Black Advantage: ${evalScore}`}
-          ></div>
+          >
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-70">
+              <span className="text-xs font-mono text-[#ffd700] transform -rotate-90">
+                {evalScore.toFixed(1)}
+              </span>
+            </div>
+          </div>
         </>
       ) : (
         <>
           <div
-            className="bg-black transition-height duration-500 ease-in-out"
+            className="bg-[#1a1a1a] transition-all duration-200 ease-in-out relative group"
             style={{ height: `${opPercentage}%` }}
-            title={`Black Advantage: ${evalScore*-1}`}
-          ></div>
+          >
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-70">
+              <span className="text-xs font-mono text-[#ffd700] transform -rotate-90">
+                {(evalScore * -1).toFixed(1)}
+              </span>
+            </div>
+          </div>
           <div
-            className="bg-white transition-height duration-500 ease-in-out"
+            className="bg-white bg-opacity-90 transition-all duration-200 ease-in-out relative group"
             style={{ height: `${MyPercentage}%` }}
-            title={`White Advantage: ${evalScore}`}
-          ></div>
+          >
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-70">
+              <span className="text-xs font-mono text-[#ffd700] transform -rotate-90">
+                {evalScore.toFixed(1)}
+              </span>
+            </div>
+          </div>
         </>
       )}
     </div>

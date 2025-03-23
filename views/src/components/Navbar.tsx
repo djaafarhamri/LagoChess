@@ -32,95 +32,71 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="flex justify-between items-center p-4 text-white">
+    <nav className="nav-container">
       {/* Logo */}
-      <div className="flex-1">
-        <NavbarLogo />
+      <div className="flex items-center">
+        <Link to="/" className="nav-logo">
+          <NavbarLogo />
+        </Link>
       </div>
 
       {/* Navigation Links */}
-      <ul className="flex flex-2 justify-center items-center space-x-4 list-none">
-        <li>
-          <Link
-            to="/"
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-md text-white hover:text-gray-300 hover:shadow-lg"
-          >
-            Home
-          </Link>
-        </li>
-        <li>
-          <Link
-            to="/puzzles"
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-md text-white hover:text-gray-300 hover:shadow-lg"
-          >
-            Puzzles
-          </Link>
-        </li>
-        <li>
-          <Link
-            to="/analyze"
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-md text-white hover:text-gray-300 hover:shadow-lg"
-          >
-            Analyze
-          </Link>
-        </li>
-        <li>
-          <Link to="https://github.com/djaafarhamri/LagoChess" target="_blank">
-            <div className="px-4 py-2 border border-gray-300 rounded-md shadow-md hover:shadow-lg cursor-pointer">
-              <img src={github} alt="github" width={20} height={20} />
-            </div>
-          </Link>
-        </li>
-      </ul>
+      <div className="nav-links">
+        <Link to="/" className="nav-link">
+          Home
+        </Link>
+        <Link to="/puzzles" className="nav-link">
+          Puzzles
+        </Link>
+        <Link to="/analyze" className="nav-link">
+          Analyze
+        </Link>
+        <Link to="https://github.com/djaafarhamri/LagoChess" target="_blank" className="nav-link">
+          <img src={github} alt="github" width={20} height={20} className="inline-block" />
+        </Link>
+      </div>
 
       {/* User Actions */}
-      {user ? (
-        <div className="flex-1 flex justify-end space-x-4 relative">
-          <button
-            onClick={toggleDropdown}
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-md text-white hover:text-gray-300 hover:shadow-lg"
-          >
-            {user.username}
-          </button>
-          {isDropdownOpen && (
-            <div className="absolute right-0 top-11 mt-2 border border-gray-300 rounded-md shadow-lg">
-              <Link
-                to="/profile"
-                className="block px-12 py-4 text-sm text-white  hover:text-gray-300"
-              >
-                Profile
-              </Link>
-              <Link
-                to="/settings"
-                className="block px-12 py-4 text-sm text-white hover:text-gray-300"
-              >
-                Settings
-              </Link>
-              <button
-                onClick={logoutApi}
-                className="w-full text-left block px-12 py-4 text-sm text-white hover:text-red-600"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="flex-1 flex justify-end space-x-4">
-          <Link
-            to="/login"
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-md text-white hover:text-gray-300 hover:shadow-lg"
-          >
-            Login
-          </Link>
-          <Link
-            to="/signup"
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-md text-white hover:text-gray-300 hover:shadow-lg"
-          >
-            Sign Up
-          </Link>
-        </div>
-      )}
+      <div className="flex items-center gap-4">
+        {user ? (
+          <div className="relative">
+            <button onClick={toggleDropdown} className="nav-link">
+              {user.username}
+            </button>
+            {isDropdownOpen && (
+              <div className="absolute right-0 top-full mt-2 bg-[rgba(50,50,50,0.95)] border border-[rgba(255,215,0,0.3)] rounded-lg shadow-lg min-w-[160px] z-50">
+                <Link
+                  to="/profile"
+                  className="block px-4 py-3 text-[#ffd700] hover:bg-[rgba(139,69,19,0.3)] transition-all"
+                >
+                  Profile
+                </Link>
+                <Link
+                  to="/settings"
+                  className="block px-4 py-3 text-[#ffd700] hover:bg-[rgba(139,69,19,0.3)] transition-all"
+                >
+                  Settings
+                </Link>
+                <button
+                  onClick={logoutApi}
+                  className="w-full text-left block px-4 py-3 text-[#ffd700] hover:bg-[rgba(220,53,69,0.3)] transition-all"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <Link to="/login" className="nav-link">
+              Login
+            </Link>
+            <Link to="/signup" className="nav-link">
+              Sign Up
+            </Link>
+          </>
+        )}
+      </div>
     </nav>
   );
 }

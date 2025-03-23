@@ -48,6 +48,18 @@ const countPieces = (captures: string[]) => {
     return pieces.sort((a, b) => pieceOrder.indexOf(a) - pieceOrder.indexOf(b));
   };
 
+const pieceValues: { [key: string]: number } = {
+  p: 1,
+  n: 3,
+  b: 3,
+  r: 5,
+  q: 9,
+};
+
+const calculateMaterialScore = (captures: string[]): number => {
+  return captures.reduce((sum, piece) => sum + (pieceValues[piece] || 0), 0);
+};
+
 const Captures: React.FC<CapturesProps> = ({
     whiteCaptures,
     blackCaptures,
@@ -57,19 +69,32 @@ const Captures: React.FC<CapturesProps> = ({
     const captures = isWhite ? whiteCaptures : blackCaptures;
 
     const pieceCounts = countPieces(sortPieces(captures));
+    const materialScore = calculateMaterialScore(captures);
 
     return (
-      <div className="flex">
-        {Object.entries(pieceCounts).map(([piece, count]) => (
-          <div key={piece} className="flex items-center">
-            {pieceIcons[piece]}
-            {count > 1 && (
-              <span className={`text-${isWhite ? "white" : "black"} ml-[-6px]`}>
-                x{count}
-              </span>
-            )}
-          </div>
-        ))}
+      <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1">
+          {Object.entries(pieceCounts).map(([piece, count]) => (
+            <div key={piece} className="flex items-center group relative">
+              <div className="w-6 h-6 flex items-center justify-center">
+                {pieceIcons[piece]}
+              </div>
+              {count > 1 && (
+                <span className={`text-xs font-mono ${isWhite ? 'text-[#ffd700]' : 'text-gray-400'}`}>
+                  {count}
+                </span>
+              )}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-black bg-opacity-75 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                {piece.toUpperCase()} × {count} = {pieceValues[piece] * count}
+              </div>
+            </div>
+          ))}
+        </div>
+        {materialScore > 0 && (
+          <span className={`text-sm font-mono ${isWhite ? 'text-[#ffd700]' : 'text-gray-400'}`}>
+            (+{materialScore})
+          </span>
+        )}
       </div>
     );
   };

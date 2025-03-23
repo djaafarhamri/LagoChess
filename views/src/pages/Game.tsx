@@ -9,17 +9,25 @@ import {
   PromotionPieceOption,
   Square,
 } from "react-chessboard/dist/chessboard/types";
-import { GameType } from "../types/types";
+import { GameType, UserType } from "../types/types";
 import Chat from "../components/game/Chat";
 import GameInfoTab from "../components/game/GameInfoTab";
 import GameOverPopup from "../components/game/GameOverPopup";
 import UnderTheBoard from "../components/game/UnderTheBoard";
+import { ChessBoard } from "../components/game/Board";
+import { GameResultModal } from "../components/game/GameResultModal";
+import { NewGameModal } from "../components/game/NewGameModal";
+import { GameInfo } from "../components/game/GameInfo";
+import { GameTimer } from "../components/game/GameTimer";
+import MoveHistory from "../components/game/MoveHistory";
 
 const Game: React.FC = () => {
   const params = useParams();
   const gameId = params.id;
 
   const { user } = useUser();
+
+  const [activeTab, setActiveTab] = useState<'info' | 'moves' | 'chat'>('info');
 
   const [chess] = useState<Chess>(new Chess());
   const [game, setGame] = useState<GameType>();
@@ -98,11 +106,19 @@ const Game: React.FC = () => {
 
   useEffect(() => {
     const getGame = async () => {
-      const response = await fetch(`${!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL === "undefined" ? "":import.meta.env.VITE_API_URL}/api/game/game/${gameId}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${
+          !import.meta.env.VITE_API_URL ||
+          import.meta.env.VITE_API_URL === "undefined"
+            ? ""
+            : import.meta.env.VITE_API_URL
+        }/api/game/game/${gameId}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
 
       const data = await response.json();
       setGame(data?.game);
@@ -134,7 +150,7 @@ const Game: React.FC = () => {
       }
       if (data?.game.status === "finished") {
         setGameOver(true);
-        setTitle(`Game Over! Reason: ${data?.game.reason}`)
+        setTitle(`Game Over! Reason: ${data?.game.reason}`);
         setWinner(
           data?.game.winner === "None"
             ? "No Winner"
@@ -274,7 +290,7 @@ const Game: React.FC = () => {
   useEffect(() => {
     // Add the event listener
     socket.on("move-made", handleMove);
-    console.log(moves)
+    console.log(moves);
 
     // Clean up the event listener on dependency change
     return () => {
@@ -464,63 +480,170 @@ const Game: React.FC = () => {
   }, [mySide, socket, user?.username]);
 
   return (
-    <div className="container flex justify-around mx-auto px-4 py-8">
-      <Chat gameId={gameId} />
-      {game && (
-        <div className="flex flex-col justify-center">
-          <Chessboard
-            id={gameId}
-            position={fen}
-            onPieceDrop={onDrop}
-            onPromotionPieceSelect={onPromo}
-            boardWidth={640}
-            boardOrientation={orientation}
-            arePiecesDraggable={
-              chess.turn() === orientation[0] &&
-              moveIndex === moves[moves.length - 1].index &&
-              !gameOver
-            } // Disable drag when it's not the player's turn
-            animationDuration={0}
+    <div className="w-full min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]">
+      <div className={`chess-game wooden`}>
+        <div className="chess-container">
+          <div className="game-layout">
+            <div className="game-board-section">
+              <GameTimer
+                whiteTime={myTimerTime}
+                blackTime={opTimerTime}
+                activeTimer={mySide}
+              />
+
+              <div className="game-board-container">
+                <div className="captured-pieces top">
+                  {whiteCaptures.map((piece, i) => (
+                    <div
+                      key={`white-${i}`}
+                      className="captured-piece white-piece"
+                    >
+                      {getPieceSymbol({ type: piece as any, color: "w" })}
+                    </div>
+                  ))}
+                </div>
+
+                <ChessBoard
+                  onDrop={onDrop}
+                  orientation={orientation}
+                  position={chess.fen()}
+                />
+
+                <div className="captured-pieces bottom">
+                  {blackCaptures.map((piece, i) => (
+                    <div
+                      key={`black-${i}`}
+                      className="captured-piece black-piece"
+                    >
+                      {getPieceSymbol({ type: piece as any, color: "b" })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* <GameControls
+              onNewGame={() => setShowNewGameModal(true)}
+              onSwitchSides={switchSides}
+              onResign={handleResign}
+              onOfferDraw={handleOfferDraw}
+              gameOver={gameOver}
+              playerColor={playerColor}
+            /> */}
+            </div>
+
+            <div className="game-info">
+              {/* Tab Menu */}
+              <div className="flex border-b border-amber-500/20 mb-4">
+                <button
+                  onClick={() => setActiveTab('info')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                    activeTab === 'info'
+                      ? 'text-amber-300 border-b-2 border-amber-500'
+                      : 'text-amber-100/60 hover:text-amber-300'
+                  }`}
+                >
+                  Info
+                </button>
+                <button
+                  onClick={() => setActiveTab('moves')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                    activeTab === 'moves'
+                      ? 'text-amber-300 border-b-2 border-amber-500'
+                      : 'text-amber-100/60 hover:text-amber-300'
+                  }`}
+                >
+                  Moves
+                </button>
+                <button
+                  onClick={() => setActiveTab('chat')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                    activeTab === 'chat'
+                      ? 'text-amber-300 border-b-2 border-amber-500'
+                      : 'text-amber-100/60 hover:text-amber-300'
+                  }`}
+                >
+                  Chat
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className="h-[calc(100vh-12rem)] overflow-y-auto">
+                {activeTab === 'info' && (
+                  <GameInfo
+                    playerColor={orientation}
+                    opponent={
+                      (game?.black as UserType)?.username === user?.username
+                        ? (game?.black as UserType)?.username ||
+                          "Waiting for opponent..."
+                        : (game?.white as UserType)?.username ||
+                          "Waiting for opponent..."
+                    }
+                    opponentRating={1200}
+                    onResign={handleResign}
+                    onOfferDraw={handleDraw}
+                    offeredDraw={offeredDraw}
+                    onAcceptDraw={handleAcceptDraw}
+                    onDeclineDraw={handleDeclineDraw}
+                    gameOver={gameOver}
+                  />
+                )}
+                {activeTab === 'moves' && (
+                  <MoveHistory 
+                    moves={moves} 
+                    setFen={setFen} 
+                    chess={chess} 
+                    setMoveIndex={setMoveIndex} 
+                    removeTempo={() => {}} 
+                    fen={fen} 
+                  />
+                )}
+                {activeTab === 'chat' && (
+                  <Chat gameId={gameId} />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Modals */}
+          {/* {showNewGameModal && (
+          <NewGameModal
+            onNewGame={startNewGame}
+            onClose={() => setShowNewGameModal(false)}
+            isOpen={showNewGameModal}
           />
-          <UnderTheBoard
-            onDraw={handleDraw}
-            onResign={handleResign}
-            offeredDraw={offeredDraw}
-            onAcceptDraw={handleAcceptDraw}
-            onDeclineDraw={handleDeclineDraw}
-            gameOver={gameOver}
+        )}
+
+        {showResultModal && (
+          <GameResultModal
+            isOpen={showResultModal}
+            resultType={resultType}
+            message={resultMessage}
+            onNewGame={() => setShowNewGameModal(true)}
+            onClose={() => setShowResultModal(false)}
           />
+        )} */}
         </div>
-      )}
-      <GameInfoTab
-        game={game}
-        chess={chess}
-        orientation={orientation}
-        opTimerTime={opTimerTime}
-        opTimerActive={opTimerActive}
-        myTimerTime={myTimerTime}
-        myTimerActive={myTimerActive}
-        handleOpTimeUpdate={handleOpTimeUpdate}
-        whiteCaptures={whiteCaptures}
-        blackCaptures={blackCaptures}
-        handleMyTimeUpdate={handleMyTimeUpdate}
-        stopTimers={stopTimers}
-        moves={moves}
-        fen={fen}
-        setFen={setFen}
-        moveIndex={moveIndex}
-        setMoveIndex={setMoveIndex}
-      />
-      {gameOver && gameOverPopupOpen && (
-        <GameOverPopup
-          title={title}
-          winner={winner}
-          onClose={handleGameOverPopupClose}
-          onGoHome={handleGoHome}
-        />
-      )}
+      </div>
     </div>
   );
 };
+
+// Helper function to get piece symbol
+function getPieceSymbol(piece: { type: string; color: string }) {
+  const symbols: Record<string, string> = {
+    wp: "♙",
+    wn: "♘",
+    wb: "♗",
+    wr: "♖",
+    wq: "♕",
+    wk: "♔",
+    bp: "♟",
+    bn: "♞",
+    bb: "♝",
+    br: "♜",
+    bq: "♛",
+    bk: "♚",
+  };
+  return symbols[piece.color + piece.type];
+}
 
 export default Game;

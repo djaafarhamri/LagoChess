@@ -164,54 +164,53 @@ const Home = () => {
   }, [challenger])
 
   return (
-    <div className="container flex flex-col items-center mx-auto px-4 py-8">
-      <div className="tabs flex space-x-4 mb-6">
-        <button
-          className={`w-32 tab py-2 px-4 rounded-lg text-white ${
-            activeTab === "quickGame"
-              ? "bg-blue-600"
-              : "bg-gray-600 hover:bg-gray-500"
-          }`}
-          onClick={() => setActiveTab("quickGame")}
-        >
-          Quick Game
-        </button>
-        <button
-          className={`w-32 tab py-2 px-4 rounded-lg text-white ${
-            activeTab === "onlineUsers"
-              ? "bg-blue-600"
-              : "bg-gray-600 hover:bg-gray-500"
-          }`}
-          onClick={() => setActiveTab("onlineUsers")}
-        >
-          Online Users
-        </button>
-        <button
-          className={`w-32 tab py-2 px-4 rounded-lg text-white ${
-            activeTab === "lobby"
-              ? "bg-blue-600"
-              : "bg-gray-600 hover:bg-gray-500"
-          }`}
-          onClick={() => setActiveTab("lobby")}
-        >
-          Lobby
-        </button>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="game-card max-w-4xl mx-auto">
+        <div className="game-card-header">
+          <h2 className="game-card-title">Play Chess</h2>
+        </div>
+        
+        <div className="flex justify-center gap-4 mb-6">
+          <button
+            className={`game-button ${
+              activeTab === "quickGame" ? "bg-[rgba(255,215,0,0.2)]" : ""
+            }`}
+            onClick={() => setActiveTab("quickGame")}
+          >
+            Quick Game
+          </button>
+          <button
+            className={`game-button ${
+              activeTab === "onlineUsers" ? "bg-[rgba(255,215,0,0.2)]" : ""
+            }`}
+            onClick={() => setActiveTab("onlineUsers")}
+          >
+            Online Users
+          </button>
+          <button
+            className={`game-button ${
+              activeTab === "lobby" ? "bg-[rgba(255,215,0,0.2)]" : ""
+            }`}
+            onClick={() => setActiveTab("lobby")}
+          >
+            Lobby
+          </button>
+        </div>
 
-      <div className="bg-gray-800 w-full max-w-[640px] h-[640px] p-8 rounded-lg shadow-xl">
-        {activeTab === "quickGame" && (
-          <QuickGame onQuickPair={handleQuickPair} />
-        )}
-        {activeTab === "onlineUsers" && (
-          <OnlineUsers
-            users={onlineUsers}
-            setOpponant={setOpponant}
-            setIsChallengePopUpOpen={setIsChallengePopUpOpen}
-            sentChallengeUsername={sentChallengeUsername}
-          />
-        )}
-
-        {activeTab === "lobby" && <Lobby />}
+        <div className="bg-[rgba(0,0,0,0.3)] rounded-lg p-6">
+          {activeTab === "quickGame" && (
+            <QuickGame onQuickPair={handleQuickPair} />
+          )}
+          {activeTab === "onlineUsers" && (
+            <OnlineUsers
+              users={onlineUsers}
+              setOpponant={setOpponant}
+              setIsChallengePopUpOpen={setIsChallengePopUpOpen}
+              sentChallengeUsername={sentChallengeUsername}
+            />
+          )}
+          {activeTab === "lobby" && <Lobby />}
+        </div>
       </div>
 
       <div className="relative">
@@ -224,10 +223,9 @@ const Home = () => {
         )}
       </div>
 
-      <div className="relative">
-          <NotificationManager popups={popups} />
+      <div className="fixed bottom-4 right-4 z-50">
+        <NotificationManager popups={popups} />
       </div>
-
     </div>
   );
 };

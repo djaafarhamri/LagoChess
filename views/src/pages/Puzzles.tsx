@@ -253,17 +253,18 @@ const Puzzles: React.FC = () => {
     [correctSquare, wrongSquare, hint]
   );
 
-  const showArrow = () => {
-    if (showMoveArrow)
+  const arrows: Arrow[] = useMemo(() => {
+    if (showMoveArrow) {
       return [
         [
-          showMoveArrow[0] + showMoveArrow[1],
-          showMoveArrow[2] + showMoveArrow[3],
-        ] as Arrow,
+          showMoveArrow.slice(0, 2) as Square,
+          showMoveArrow.slice(2, 4) as Square,
+          "blue",
+        ],
       ];
+    }
     return [];
-  };
-  const customArrow = useMemo(() => showArrow(), [showMoveArrow]);
+  }, [showMoveArrow]);
 
   const showMove = () => {
     if (puzzle) {
@@ -281,46 +282,68 @@ const Puzzles: React.FC = () => {
 
   if (puzzle) {
     return (
-      <div className="container flex justify-around mx-auto px-4 py-8">
-        <div className="flex flex-col justify-center">
-          <Chessboard
-            id={puzzle.puzzle.id}
-            position={fen}
-            onPieceDrop={onDrop}
-            onPromotionPieceSelect={onPromo}
-            boardWidth={640}
-            boardOrientation={orientation}
-            arePiecesDraggable={moveIndex === moves.length - 1} // Enable drag only at the current move
-            animationDuration={0}
-            customArrows={customArrow}
-            customSquareStyles={customStyles}
-          />
+      <div className="chess-game min-h-screen">
+        <div className="chess-container">
+          {/* Header */}
+          <div className="game-header w-full mb-6">
+            <h1 className="game-title text-2xl md:text-3xl">Chess Puzzles</h1>
+          </div>
+
+          {/* Main Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 w-full">
+            {/* Chess Board Section */}
+            <div className="game-board-container">
+              <div className="chess-board-wrapper">
+                <Chessboard
+                  position={fen}
+                  onPieceDrop={onDrop}
+                  onPromotionPieceSelect={onPromo}
+                  boardOrientation={orientation}
+                  customArrows={arrows}
+                  customSquareStyles={colorSquare()}
+                  animationDuration={200}
+                />
+              </div>
+            </div>
+
+            {/* Info Section */}
+            <div className="game-info">
+              <PuzzleInfoTab
+                puzzle={puzzle}
+                moves={moves}
+                fen={fen}
+                setFen={setFen}
+                moveIndex={moveIndex}
+                setMoveIndex={setMoveIndex}
+                goToMove={goToMove}
+                retry={retry}
+                next={getPuzzle}
+                isFinished={isFinished}
+                wrongSquare={wrongSquare}
+                correctSquare={correctSquare}
+                showMove={showMove}
+                hint={hint}
+                showHint={showHint}
+                isMyturn={chess.turn() === mySide[0]}
+              />
+            </div>
+          </div>
         </div>
-        <PuzzleInfoTab
-          puzzle={puzzle}
-          moves={moves}
-          fen={fen}
-          setFen={setFen}
-          moveIndex={moveIndex}
-          setMoveIndex={setMoveIndex}
-          goToMove={goToMove}
-          retry={retry}
-          next={() => {
-            setRating(prev => prev + 100);
-            getPuzzle();
-          }}
-          isFinished={isFinished}
-          wrongSquare={wrongSquare}
-          correctSquare={correctSquare}
-          showMove={showMove}
-          hint={hint}
-          showHint={showHint}
-          isMyturn={chess.turn() === mySide[0]}
-        />
       </div>
     );
   } else {
-    return <div>loading...</div>;
+    return (
+      <div className="chess-game min-h-screen">
+        <div className="chess-container">
+          <div className="game-card p-8">
+            <div className="animate-pulse">
+              <div className="h-8 w-32 bg-[#2a2a2a] rounded mb-4"></div>
+              <div className="h-64 w-64 bg-[#2a2a2a] rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 };
 

@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../chessV2/client"
+		}
+	],
+	"settings": {}
+}

@@ -76,108 +76,85 @@ const GameInfoTab = ({
   setMoveIndex,
 }: Props) => {
   return (
-    <div className="flex flex-col w-full mr-auto">
-      <Timer
-        currentTime={opTimerTime}
-        isActive={opTimerActive}
-        onTimeEnd={stopTimers}
-        onTimeUpdate={handleOpTimeUpdate}
-      />
-      {orientation !== "white" ? (
-        <>
-          <div className="flex w-full h-10 bg-[#454545]">
-            <Captures
-              whiteCaptures={whiteCaptures}
-              blackCaptures={blackCaptures}
-              isWhite={false}
-            />
-            {calculateEvaluation(whiteCaptures, blackCaptures, "white") > 0 && (
-              <p className="text-center text-white m-2">
-                +{calculateEvaluation(whiteCaptures, blackCaptures, "white")}
-              </p>
-            )}
-            <div className="h-10 w-10 bg-white ml-auto"></div>
+    <div className="flex flex-col w-full h-full">
+      {/* Opponent Section */}
+      <div className="game-card-header">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-3">
+            <div className={`w-3 h-3 rounded-full ${opTimerActive ? 'bg-[#ffd700]' : 'bg-gray-600'}`} />
+            <h3 className="text-lg font-semibold text-[#ffd700] truncate max-w-[120px] sm:max-w-none">
+              {orientation === "white" 
+                ? (typeof game?.black !== "string" && game?.black.username)
+                : (typeof game?.white !== "string" && game?.white.username)}
+            </h3>
           </div>
-          <div className="text-xl  font-bold text-yellow-400 py-2 px-8 bg-[#313131]">
-            <h2>{typeof game?.white !== "string" && game?.white.username}</h2>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="flex w-full bg-[#454545]">
-            <Captures
-              whiteCaptures={whiteCaptures}
-              blackCaptures={blackCaptures}
-              isWhite={true}
-            />
-            {calculateEvaluation(whiteCaptures, blackCaptures, "black") > 0 && (
-              <p className="text-center text-white m-2">
-                +{calculateEvaluation(whiteCaptures, blackCaptures, "black")}
-              </p>
-            )}
-            <div className="h-10 w-10 bg-black ml-auto"></div>
-          </div>
-          <div className="text-xl  font-bold text-yellow-400 py-2 px-8 bg-[#313131]">
-            <h2>{typeof game?.black !== "string" && game?.black.username}</h2>
-          </div>
-        </>
-      )}
-      <div className="w-full  h-full">
-        <MoveHistory
-          chess={chess}
-          moves={moves}
-          fen={fen}
-          setFen={setFen}
-          moveIndex={moveIndex}
-          setMoveIndex={setMoveIndex}
-          showBar={true}
-        />
+          <Timer
+            currentTime={opTimerTime}
+            isActive={opTimerActive}
+            onTimeEnd={stopTimers}
+            onTimeUpdate={handleOpTimeUpdate}
+          />
+        </div>
+        <div className="flex items-center bg-[#2a2a2a] rounded-lg p-2">
+          <Captures
+            whiteCaptures={whiteCaptures}
+            blackCaptures={blackCaptures}
+            isWhite={orientation !== "white"}
+          />
+          {calculateEvaluation(whiteCaptures, blackCaptures, orientation === "white" ? "black" : "white") > 0 && (
+            <span className="text-[#ffd700] font-mono ml-2">
+              +{calculateEvaluation(whiteCaptures, blackCaptures, orientation === "white" ? "black" : "white")}
+            </span>
+          )}
+        </div>
       </div>
-      {orientation === "white" ? (
-        <>
-          <div className="flex w-full bg-[#454545]">
-            <Captures
-              whiteCaptures={whiteCaptures}
-              blackCaptures={blackCaptures}
-              isWhite={false}
-            />
-            {calculateEvaluation(whiteCaptures, blackCaptures, "white") > 0 && (
-              <p className="text-center text-white m-2">
-                +{calculateEvaluation(whiteCaptures, blackCaptures, "white")}
-              </p>
-            )}
-            <div className="h-10 w-10 bg-white ml-auto"></div>
+
+      {/* Move History */}
+      <div className="flex-grow overflow-hidden">
+        <div className="game-card-content h-[200px] sm:h-[300px] md:h-[400px]">
+          <MoveHistory
+            chess={chess}
+            moves={moves}
+            fen={fen}
+            setFen={setFen}
+            moveIndex={moveIndex}
+            setMoveIndex={setMoveIndex}
+            showBar={true}
+          />
+        </div>
+      </div>
+
+      {/* Player Section */}
+      <div className="game-card-header mt-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-3">
+            <div className={`w-3 h-3 rounded-full ${myTimerActive ? 'bg-[#ffd700]' : 'bg-gray-600'}`} />
+            <h3 className="text-lg font-semibold text-[#ffd700] truncate max-w-[120px] sm:max-w-none">
+              {orientation === "white"
+                ? (typeof game?.white !== "string" && game?.white.username)
+                : (typeof game?.black !== "string" && game?.black.username)}
+            </h3>
           </div>
-          <div className="text-xl  font-bold text-yellow-400 py-2 px-8 bg-[#313131]">
-            <h2>{typeof game?.white !== "string" && game?.white.username}</h2>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="flex w-full bg-[#454545]">
-            <Captures
-              whiteCaptures={whiteCaptures}
-              blackCaptures={blackCaptures}
-              isWhite={true}
-            />
-            {calculateEvaluation(whiteCaptures, blackCaptures, "black") > 0 && (
-              <p className="text-center text-white m-2">
-                +{calculateEvaluation(whiteCaptures, blackCaptures, "black")}
-              </p>
-            )}
-            <div className="h-10 w-10 bg-black ml-auto"></div>
-          </div>
-          <div className="text-xl  font-bold text-yellow-400 py-2 px-8 bg-[#313131]">
-            <h2>{typeof game?.black !== "string" && game?.black.username}</h2>
-          </div>
-        </>
-      )}
-      <Timer
-        currentTime={myTimerTime}
-        isActive={myTimerActive}
-        onTimeEnd={stopTimers}
-        onTimeUpdate={handleMyTimeUpdate}
-      />
+          <Timer
+            currentTime={myTimerTime}
+            isActive={myTimerActive}
+            onTimeEnd={stopTimers}
+            onTimeUpdate={handleMyTimeUpdate}
+          />
+        </div>
+        <div className="flex items-center bg-[#2a2a2a] rounded-lg p-2">
+          <Captures
+            whiteCaptures={whiteCaptures}
+            blackCaptures={blackCaptures}
+            isWhite={orientation === "white"}
+          />
+          {calculateEvaluation(whiteCaptures, blackCaptures, orientation) > 0 && (
+            <span className="text-[#ffd700] font-mono ml-2">
+              +{calculateEvaluation(whiteCaptures, blackCaptures, orientation)}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

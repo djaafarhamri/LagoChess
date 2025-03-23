@@ -6,7 +6,7 @@ type SentChallengePopupPropsType = {
 };
 
 function SentChallengePopup({ username, onTimeout }: SentChallengePopupPropsType) {
-    const [progress, setProgress] = useState(100); // Progress of the border (100%)
+  const [progress, setProgress] = useState(100); // Progress of the border (100%)
   
   // Use a ref to store the start time to persist across renders
   const startTimeRef = useRef(Date.now());
@@ -40,22 +40,28 @@ function SentChallengePopup({ username, onTimeout }: SentChallengePopupPropsType
   }, [onTimeout]);
 
   return (
-    <>
-      <div className="text-center px-6 py-2">
-        <h3 className="mt-2 text-xl text-gray-300">
-          waiting for <span className="text-yellow-400">{username}</span> response...
-        </h3>
+    <div className="game-card">
+      <div className="game-card-header">
+        <h2 className="game-card-title">Challenge Sent</h2>
       </div>
+      
+      <div className="p-6 space-y-6">
+        <div className="text-center">
+          <p className="text-[#f0f0f0] text-lg">
+            Waiting for <span className="text-[#ffd700] font-medium">{username}</span>'s response...
+          </p>
+        </div>
 
-      <div
-        className="border-b-2 mt-2 w-full"
-        style={{
-          width: `${progress}%`,
-          borderColor: "#facc15", // Yellow border color
-          transition: "width 0.1s linear", // Smooth animation over 100ms interval
-        }}
-      />
-    </>
+        <div className="relative h-1 bg-[rgba(255,215,0,0.1)] rounded-full overflow-hidden">
+          <div
+            className="absolute top-0 left-0 h-full bg-[#ffd700] transition-all duration-100"
+            style={{
+              width: `${progress}%`,
+            }}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 

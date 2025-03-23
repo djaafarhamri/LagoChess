@@ -151,68 +151,121 @@ const Analyze: React.FC = () => {
     return true;
   }
 
-  const showArrow = () => {
-    if (bestMove)
-      return [
-        [
-          bestMove[0] + bestMove[1],
-          bestMove[2] + bestMove[3],
-        ] as Arrow,
-      ];
+  const arrows: Arrow[] = useMemo(() => {
+    if (bestMove) {
+      return [[bestMove.slice(0, 2) as Square, bestMove.slice(2, 4) as Square, "blue"]];
+    }
     return [];
-  };
-  const customArrow = useMemo(() => showArrow(), [bestMove]);
+  }, [bestMove]);
 
   if (game) {
     return (
-      <div className="container flex justify-around mx-auto px-4 py-8">
-        <div className="w-1/4"></div>
-        {evaluation && (
-          <EvalBar
-            evalScore={evaluation}
-            turn={chess.turn()}
-            orientation={orientation}
-          />
-        )}
-        <div className="flex flex-col justify-center">
-          <Chessboard
-            id={gameId}
-            position={fen}
-            boardWidth={640}
-            onPieceDrop={onDrop}
-            boardOrientation={orientation}
-            arePiecesDraggable={true} // Enable drag only at the current move
-            animationDuration={0}
-            customArrows={customArrow}
-          />
-        </div>
-        <div className="w-full  h-full">
-          <Lines lines={principalVariation} />
-          <MoveHistory
-            chess={chess}
-            moves={moves}
-            fen={fen}
-            setFen={setFen}
-            moveIndex={moveIndex}
-            setMoveIndex={setMoveIndex}
-            removeTempo={removeTempo}
-            showBar={isTempo ? false : true}
-          />
-          <MoveHistory
-            chess={chess}
-            moves={tempoMoves}
-            fen={fen}
-            setFen={setFen}
-            moveIndex={tempoMoveIndex}
-            setMoveIndex={setTempoMoveIndex}
-            showBar={isTempo ? true : false}
-          />
+      <div className="chess-game min-h-screen">
+        <div className="chess-container">
+          {/* Header */}
+          <div className="game-header w-full mb-6">
+            <h1 className="game-title text-2xl md:text-3xl">Game Analysis</h1>
+          </div>
+
+          {/* Main Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 w-full">
+            {/* Main Analysis Section */}
+            <div className="flex flex-col gap-6">
+              {/* Chessboard Section */}
+              <div className="game-board-container">
+                <div className="flex items-start">
+                  {evaluation !== null && (
+                    <div className="hidden lg:block">
+                      <EvalBar
+                        evalScore={evaluation}
+                        turn={chess.turn()}
+                        orientation={orientation}
+                      />
+                    </div>
+                  )}
+                  <div className="chess-board-wrapper">
+                    <Chessboard
+                      id={gameId}
+                      position={fen}
+                      onPieceDrop={onDrop}
+                      boardOrientation={orientation}
+                      customArrows={arrows}
+                      animationDuration={200}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Side Panel */}
+            <div className="game-info flex flex-col gap-4">
+              {/* Engine Evaluation */}
+              <div className="game-card">
+                <div className="game-card-header">
+                  <h2 className="game-card-title">Engine Evaluation</h2>
+                </div>
+                <div className="p-4">
+                  <Lines lines={principalVariation} />
+                </div>
+              </div>
+
+              {/* Move History */}
+              <div className="game-card flex-grow">
+                <div className="game-card-header">
+                  <h2 className="game-card-title">Game Moves</h2>
+                </div>
+                <div className="h-[300px]">
+                  <MoveHistory
+                    chess={chess}
+                    moves={moves}
+                    fen={fen}
+                    setFen={setFen}
+                    moveIndex={moveIndex}
+                    setMoveIndex={setMoveIndex}
+                    removeTempo={removeTempo}
+                    showBar={isTempo ? false : true}
+                  />
+                </div>
+              </div>
+
+              {/* Variation Moves */}
+              {isTempo && (
+                <div className="game-card">
+                  <div className="game-card-header">
+                    <h2 className="game-card-title">Variations</h2>
+                  </div>
+                  <div className="h-[200px]">
+                    <MoveHistory
+                      chess={chess}
+                      moves={tempoMoves}
+                      fen={fen}
+                      setFen={setFen}
+                      moveIndex={tempoMoveIndex}
+                      setMoveIndex={setTempoMoveIndex}
+                      showBar={true}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     );
-  } else {
-    return <div>loading...</div>;
   }
+
+  return (
+    <div className="chess-game min-h-screen">
+      <div className="chess-container">
+        <div className="game-card p-8">
+          <div className="animate-pulse">
+            <div className="h-8 w-32 bg-[#2a2a2a] rounded mb-4"></div>
+            <div className="h-64 w-64 bg-[#2a2a2a] rounded"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Analyze;

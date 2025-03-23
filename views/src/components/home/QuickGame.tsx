@@ -1,4 +1,3 @@
-
 interface TimerOption {
   label: string;
   value: string;
@@ -8,11 +7,12 @@ interface TimerCategory {
   name: string;
   options: TimerOption[];
 }
-type Props = {
-  onQuickPair: (timer: string) => void
-}
 
-function QuickGame({onQuickPair}: Props) {
+type Props = {
+  onQuickPair: (timer: string) => void;
+};
+
+function QuickGame({ onQuickPair }: Props) {
   const timerCategories: TimerCategory[] = [
     {
       name: "Bullet",
@@ -47,50 +47,25 @@ function QuickGame({onQuickPair}: Props) {
   ];
 
   return (
-    <div className="quick-game text-center">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-6">Quick Game</h2>
-      <h3 className="flex text-white font-bold m-2">Bullet</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {timerCategories
-          .find((category) => category.name === "Bullet")
-          ?.options.map((option) => (
-            <button
-              key={option.value}
-              className="bg-[#454545] text-yellow-500 border border-yellow-400 font-semibold rounded-lg hover:bg-yellow-400 hover:text-black px-6 py-3 transition-all ease-in-out transform hover:scale-105"
-              onClick={() => onQuickPair(option.value)}
-            >
-              {option.label}
-            </button>
-          ))}
-      </div>
-      <h3 className="flex text-white font-bold m-2">Blitz</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {timerCategories
-          .find((category) => category.name === "Blitz")
-          ?.options.map((option) => (
-            <button
-              key={option.value}
-              className="bg-[#454545] text-yellow-500 border border-yellow-400 font-semibold rounded-lg hover:bg-yellow-400 hover:text-black px-6 py-3 transition-all ease-in-out transform hover:scale-105"
-              onClick={() => onQuickPair(option.value)}
-            >
-              {option.label}
-            </button>
-          ))}
-      </div>
-      <h3 className="flex text-white font-bold m-2">Rapid</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {timerCategories
-          .find((category) => category.name === "Rapid")
-          ?.options.map((option) => (
-            <button
-              key={option.value}
-              className="bg-[#454545] text-yellow-500 border border-yellow-400 font-semibold rounded-lg hover:bg-yellow-400 hover:text-black px-6 py-3 transition-all ease-in-out transform hover:scale-105"
-              onClick={() => onQuickPair(option.value)}
-            >
-              {option.label}
-            </button>
-          ))}
-      </div>
+    <div className="space-y-8">
+      {timerCategories.map((category) => (
+        <div key={category.name} className="game-card">
+          <div className="game-card-header">
+            <h3 className="game-card-title">{category.name}</h3>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4">
+            {category.options.map((option) => (
+              <button
+                key={option.value}
+                className="game-button"
+                onClick={() => onQuickPair(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

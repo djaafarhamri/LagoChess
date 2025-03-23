@@ -4,39 +4,62 @@ type Props = {
   users: string[];
   setOpponant: React.Dispatch<React.SetStateAction<string>>;
   setIsChallengePopUpOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  sentChallengeUsername: string
+  sentChallengeUsername: string;
 };
 
-function OnlineUsers({ users, setOpponant, setIsChallengePopUpOpen, sentChallengeUsername }: Props) {
+function OnlineUsers({
+  users,
+  setOpponant,
+  setIsChallengePopUpOpen,
+  sentChallengeUsername,
+}: Props) {
   const { user } = useUser();
 
   return (
-    <div className="overflow-hidden sm:rounded-md">
-      <h2 className="text-xl text-center font-bold text-yellow-400 p-4">
-        Online Users
-      </h2>
+    <div className="game-card">
+      <div className="game-card-header">
+        <h2 className="game-card-title">Online Users</h2>
+      </div>
+      
       {users.length === 0 ? (
-        <p className="text-center text-gray-300 py-4">No users are online</p>
+        <div className="text-center p-6 text-[#f0f0f0]">
+          No users are online
+        </div>
       ) : (
-        <ul className="divide-y divide-gray-600">
+        <div className="divide-y divide-[rgba(255,215,0,0.1)]">
           {users.map((op) =>
             user?.username !== op ? (
-              <li key={op} className="flex items-center px-4 py-4 hover:bg-[#4E4D4D]">
-                <p className="text-sm font-medium text-yellow-400 truncate flex-1">{op}</p>
+              <div
+                key={op}
+                className="flex items-center justify-between p-4 hover:bg-[rgba(139,69,19,0.2)] transition-all"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[rgba(255,215,0,0.2)] flex items-center justify-center border border-[rgba(255,215,0,0.3)]">
+                    {op[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-[#ffd700] font-medium">{op}</p>
+                    <p className="text-sm text-[rgba(255,215,0,0.6)]">Online</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => {
                     setIsChallengePopUpOpen(true);
                     setOpponant(op);
                   }}
                   disabled={sentChallengeUsername === op}
-                  className="ml-5 px-3 py-1 bg-yellow-500 text-black font-semibold rounded hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:bg-[#454545]"
+                  className={`game-button ${
+                    sentChallengeUsername === op
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
                 >
                   Challenge
                 </button>
-              </li>
+              </div>
             ) : null
           )}
-        </ul>
+        </div>
       )}
     </div>
   );

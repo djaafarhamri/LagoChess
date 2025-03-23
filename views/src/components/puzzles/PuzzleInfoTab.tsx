@@ -1,6 +1,7 @@
 import { Chess } from "chess.js";
 import { PuzzleType } from "../../pages/Puzzles";
-import MoveHistory from "../game/Moves";
+import MoveHistory from "../game/MoveHistory";
+import { Award, Lightbulb, ArrowRight, RotateCcw } from "lucide-react";
 
 type Props = {
   puzzle: PuzzleType | null;
@@ -42,55 +43,118 @@ const PuzzleInfoTab = ({
   showHint,
   isMyturn,
 }: Props) => {
+  // Create a new Chess instance for the MoveHistory component
+  const chessInstance = new Chess();
+  
   return (
-    <div className="flex flex-col w-full mr-auto">
-      <div className="w-full h-full">
+    <div className="space-y-6">
+      {/* Puzzle Info */}
+      <div className="bg-amber-900/20 rounded-md border border-amber-500/20 p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <Award className="text-amber-300 h-5 w-5" />
+          <h2 className="text-amber-300 font-medium">Puzzle Rating</h2>
+        </div>
+        <div className="flex items-center">
+          <span className="text-2xl font-bold text-amber-200">
+            {puzzle?.puzzle.rating || "?"}
+          </span>
+          <span className="ml-3 text-amber-100/60 text-sm">
+            Themes: {puzzle?.puzzle.themes.join(", ")}
+          </span>
+        </div>
+      </div>
+
+      {/* Move History */}
+      <div className="bg-amber-900/20 rounded-md border border-amber-500/20 p-4">
+        <h2 className="text-amber-300 font-medium mb-3">Move History</h2>
         <MoveHistory
-          chess={new Chess()}
-          showBar={false}
+          chess={chessInstance}
           moves={moves}
           fen={fen}
           setFen={setFen}
-          moveIndex={moveIndex}
           setMoveIndex={setMoveIndex}
+          removeTempo={() => {}}
+          containerHeight="h-[160px]"
         />
       </div>
-      <div className="w-full text-white font-bold text-3xl text-center p-2">
-        Puzzle Rating : {puzzle?.puzzle.rating}
-      </div>
-      <div className="w-full flex justify-center items-center">
+
+      {/* Status Messages */}
+      {(correctSquare || wrongSquare || isFinished) && (
+        <div className={`p-3 rounded-md border ${
+          isFinished 
+            ? "bg-green-700/20 border-green-500/30 text-green-300" 
+            : correctSquare 
+              ? "bg-amber-700/30 border-amber-500/30 text-amber-300"
+              : "bg-red-700/30 border-red-500/30 text-red-300"
+        }`}>
+          {isFinished && <p>Puzzle completed successfully!</p>}
+          {correctSquare && !isFinished && <p>Correct move! Now wait for opponent's move.</p>}
+          {wrongSquare && <p>Incorrect move. Try again.</p>}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="space-y-3">
         {isFinished && (
-          <button className="bg-green-500 p-3 w-1/3 rounded-3xl font-bold" onClick={next}>
-            NEXT PUZZLE
+          <button 
+            onClick={next}
+            className="w-full flex items-center justify-center gap-2 bg-green-700/60 hover:bg-green-600/70 text-white px-4 py-3 rounded-md transition-colors"
+          >
+            <ArrowRight className="h-4 w-4" />
+            <span>Next Puzzle</span>
           </button>
         )}
-        {correctSquare && !isFinished && (
-          <button className="bg-green-500 p-3 w-1/3 rounded-3xl font-bold">
-            CORRECT MOVE
-          </button>
-        )}
+        
         {wrongSquare && (
-          <button className="bg-red-500 p-3 w-1/3 rounded-3xl font-bold" onClick={retry}>
-            WRONG MOVE! RETRY
+          <button 
+            onClick={retry}
+            className="w-full flex items-center justify-center gap-2 bg-red-700/60 hover:bg-red-600/70 text-white px-4 py-3 rounded-md transition-colors"
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span>Try Again</span>
           </button>
         )}
-        {!hint && !isFinished && isMyturn && (
+        
+        {!hint && !isFinished && isMyturn && !wrongSquare && !correctSquare && (
           <button
-            className="bg-blue-500 p-3 w-1/3 rounded-3xl font-bold"
             onClick={showHint}
+            className="w-full flex items-center justify-center gap-2 bg-amber-700/60 hover:bg-amber-600/70 text-white px-4 py-3 rounded-md transition-colors"
           >
-            GET A HINT
+            <Lightbulb className="h-4 w-4" />
+            <span>Get a Hint</span>
           </button>
         )}
-        {hint && (
+        
+        {hint && !isFinished && isMyturn && !wrongSquare && !correctSquare && (
           <button
-            className="bg-blue-500 p-3 w-1/3  rounded-3xl font-bold"
             onClick={showMove}
+            className="w-full flex items-center justify-center gap-2 bg-blue-700/60 hover:bg-blue-600/70 text-white px-4 py-3 rounded-md transition-colors"
           >
-            SHOW THE MOVE
+            <ArrowRight className="h-4 w-4" />
+            <span>Show the Move</span>
           </button>
         )}
       </div>
+      
+      {/* Players */}
+      {puzzle?.game?.players && (
+        <div className="bg-amber-900/20 rounded-md border border-amber-500/20 p-4 mt-4">
+          <h2 className="text-amber-300 font-medium mb-3">Players</h2>
+          <div className="space-y-3">
+            {puzzle.game.players.map((player, index) => (
+              <div key={index} className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium text-amber-100">{player.name}</p>
+                  <p className="text-sm text-amber-100/60">Rating: {player.rating}</p>
+                </div>
+                <div className="bg-amber-900/30 px-3 py-1 rounded-full text-amber-300 text-sm border border-amber-500/30">
+                  {player.color === "white" ? "White" : "Black"}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

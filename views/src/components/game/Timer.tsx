@@ -64,12 +64,20 @@ const Timer = ({
     };
   }, [isActive, onTimeEnd, onTimeUpdate]);
 
+  const getTimerColor = () => {
+    if (timeLeft.minutes === 0) {
+      if (timeLeft.seconds <= 10) return 'text-red-500';
+      if (timeLeft.seconds <= 30) return 'text-yellow-500';
+    }
+    return isActive ? 'text-[#ffd700]' : 'text-gray-400';
+  };
+
   return (
-    <div className="">
-      <h1 className="max-w-fit p-3 text-5xl font-medium text-gray-200">
+    <div className={`font-mono text-2xl font-bold ${getTimerColor()} transition-colors duration-300`}>
+      <span className="tabular-nums">
         {timeLeft.minutes < 10 ? `0${timeLeft.minutes}` : timeLeft.minutes}:
         {timeLeft.seconds < 10 ? `0${timeLeft.seconds}` : timeLeft.seconds}
-      </h1>
+      </span>
     </div>
   );
 };

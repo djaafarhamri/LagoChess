@@ -38,7 +38,7 @@ mongoose
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "http://localhost:5174"],
   })
 );
 app.use(cookieParser());
@@ -190,11 +190,12 @@ io.on("connection", (socket) => {
     await makeMove(gameId, san, index, fen);
   });
 
-  socket.on("send-message", ({ gameId, content, sender }) => {
+  socket.on("send-message", ({ gameId, content, sender, sentAt }) => {
+    console.log("send-message", { gameId, content, sender, sentAt });
     socket
       .to(gameId)
-      .emit("message-received", { content, sender, sentAt: Date.now });
-    sendMessage(gameId, content, sender);
+      .emit("message-received", { content, sender, sentAt });
+    sendMessage(gameId, content, sender, sentAt);
   });
 
   socket.on("draw-offer", ({ gameId, player }) => {
