@@ -3,10 +3,16 @@ import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, Square } from "chess.js";
+import { PromotionPieceOption } from "react-chessboard/dist/chessboard/types";
 
 type ChessBoardProps = {
   position?: string;
   onDrop?: (sourceSquare: Square, targetSquare: Square) => boolean;
+  onPromo: (
+    piece?: PromotionPieceOption,
+    promoteFromSquare?: Square,
+    promoteToSquare?: Square
+  ) => boolean;
   orientation?: "white" | "black";
   readOnly?: boolean;
   theme?: string;
@@ -16,6 +22,7 @@ type ChessBoardProps = {
 export function ChessBoard({
   position = "start",
   onDrop,
+  onPromo,
   orientation = "white",
   theme = "wooden",
   lastMove = null,
@@ -93,7 +100,6 @@ export function ChessBoard({
       timeouts.forEach(clearTimeout);
     };
   }, []);
-
 
   // Get board styling (scaled border based on current width)
   const getBoardStyles = () => {
@@ -197,6 +203,7 @@ export function ChessBoard({
             id="chess-board"
             position={game.fen()}
             onPieceDrop={onDrop}
+            onPromotionPieceSelect={onPromo}
             boardOrientation={orientation}
             customBoardStyle={getBoardStyles()}
             customDarkSquareStyle={{

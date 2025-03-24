@@ -12,7 +12,7 @@ type Props = {
   }[];
   fen: string;
   setFen: React.Dispatch<React.SetStateAction<string>>;
-  moveIndex: number;
+  moveIndex?: number;
   setMoveIndex: React.Dispatch<React.SetStateAction<number>>;
   goToMove: (index: number) => void;
   retry: () => void;
@@ -31,7 +31,6 @@ const PuzzleInfoTab = ({
   moves,
   fen,
   setFen,
-  moveIndex,
   setMoveIndex,
   retry,
   next,

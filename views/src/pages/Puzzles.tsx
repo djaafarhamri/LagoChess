@@ -169,12 +169,14 @@ const Puzzles: React.FC = () => {
       setPuzzleIndex(puzzleIndex + 1);
       setFen(chess.fen());
       setCorrectSquare(targetSquare);
+      setRating(rating + 100);
       if (puzzle && puzzle?.puzzle.solution.length === puzzleIndex + 1) {
         setIsFinished(true);
       }
     } else {
       setFen(chess.fen());
       setWrongSquare(targetSquare);
+      setRating(rating - 100);
       const newMove = { san: move.san, fen: chess.fen(), index: moves.length };
       setMoves((prev) => [...prev, newMove]);
     }

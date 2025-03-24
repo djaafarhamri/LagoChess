@@ -18,7 +18,6 @@ const Analyze: React.FC = () => {
   const [moves, setMoves] = useState<{ san: string; fen: string; index: number }[]>([]);
   const [tempoMoves, setTempoMoves] = useState<{ san: string; fen: string; index: number }[]>([]);
   const { user } = useUser();
-  const [moveIndex, setMoveIndex] = useState<number>(0);
   const [tempoMoveIndex, setTempoMoveIndex] = useState<number>(0);
   const [isTempo, setIsTempo] = useState<boolean>(false);
   const [evaluation, setEvaluation] = useState<number | null>(null);
@@ -71,7 +70,6 @@ const Analyze: React.FC = () => {
         if (data.game.moves && data.game.moves.length > 0) {
           console.log("Setting moves:", data.game.moves); // Debug log
           setMoves(data.game.moves);
-          setMoveIndex(data.game.moves[data.game.moves.length - 1].index);
         }
 
         if (data.game.black && typeof data.game.black === 'object' && data.game.black.username === user?.username) {
@@ -334,7 +332,7 @@ const Analyze: React.FC = () => {
                         moves={moves}
                         fen={fen}
                         setFen={setFen}
-                        setMoveIndex={setMoveIndex}
+                        setMoveIndex={() => {}}
                         removeTempo={removeTempo}
                         containerHeight="h-[300px]"
                       />

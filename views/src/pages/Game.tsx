@@ -14,6 +14,7 @@ import { ChessBoard } from "../components/game/Board";
 import { GameInfo } from "../components/game/GameInfo";
 import Timer from "../components/game/GameTimer";
 import MoveHistory from "../components/game/MoveHistory";
+import { GameResultModal } from "../components/game/GameResultModal";
 
 const Game: React.FC = () => {
   const params = useParams();
@@ -508,6 +509,7 @@ const Game: React.FC = () => {
 
                 <ChessBoard
                   onDrop={onDrop}
+                  onPromo={onPromo}
                   orientation={orientation}
                   position={chess.fen()}
                 />
@@ -611,17 +613,17 @@ const Game: React.FC = () => {
             onClose={() => setShowNewGameModal(false)}
             isOpen={showNewGameModal}
           />
-        )}
-
-        {showResultModal && (
-          <GameResultModal
-            isOpen={showResultModal}
-            resultType={resultType}
-            message={resultMessage}
-            onNewGame={() => setShowNewGameModal(true)}
-            onClose={() => setShowResultModal(false)}
-          />
         )} */}
+
+        {gameOverPopupOpen && (
+          <GameResultModal
+            isOpen={gameOverPopupOpen}
+            resultType={winner === "No Winner" ? "draw" : winner === mySide ? "win" : "lose"}
+            message={title}
+            onNewGame={handleGoHome}
+            onClose={handleGameOverPopupClose}
+          />
+        )}
         </div>
       </div>
     </div>

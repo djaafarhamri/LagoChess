@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../context/UserContext";
-import { UserType } from "../types/types";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
-import { LineChart, BarChart, PieChart, TrophyIcon, ClockIcon, UserIcon, LogOut } from "lucide-react";
+import { LineChart, BarChart, TrophyIcon, ClockIcon, UserIcon, LogOut } from "lucide-react";
 
 const Profile: React.FC = () => {
   const { user, login, logout } = useUser();
