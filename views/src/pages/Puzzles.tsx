@@ -248,10 +248,6 @@ const Puzzles: React.FC = () => {
       return { [hint as Square]: { backgroundColor: "#4169E1" } };
     return {}; // Return an empty object if none of the conditions match
   };
-  const customStyles = useMemo(
-    () => colorSquare(),
-    [correctSquare, wrongSquare, hint]
-  );
 
   const arrows: Arrow[] = useMemo(() => {
     if (showMoveArrow) {

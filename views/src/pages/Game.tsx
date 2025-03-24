@@ -1,5 +1,4 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import { useNavigate, useParams } from "react-router";
 import { useUser } from "../context/UserContext";
@@ -11,14 +10,9 @@ import {
 } from "react-chessboard/dist/chessboard/types";
 import { GameType, UserType } from "../types/types";
 import Chat from "../components/game/Chat";
-import GameInfoTab from "../components/game/GameInfoTab";
-import GameOverPopup from "../components/game/GameOverPopup";
-import UnderTheBoard from "../components/game/UnderTheBoard";
 import { ChessBoard } from "../components/game/Board";
-import { GameResultModal } from "../components/game/GameResultModal";
-import { NewGameModal } from "../components/game/NewGameModal";
 import { GameInfo } from "../components/game/GameInfo";
-import { GameTimer } from "../components/game/GameTimer";
+import Timer from "../components/game/GameTimer";
 import MoveHistory from "../components/game/MoveHistory";
 
 const Game: React.FC = () => {
@@ -27,7 +21,7 @@ const Game: React.FC = () => {
 
   const { user } = useUser();
 
-  const [activeTab, setActiveTab] = useState<'info' | 'moves' | 'chat'>('info');
+  const [activeTab, setActiveTab] = useState<"info" | "moves" | "chat">("info");
 
   const [chess] = useState<Chess>(new Chess());
   const [game, setGame] = useState<GameType>();
@@ -485,11 +479,20 @@ const Game: React.FC = () => {
         <div className="chess-container">
           <div className="game-layout">
             <div className="game-board-section">
-              <GameTimer
-                whiteTime={myTimerTime}
-                blackTime={opTimerTime}
-                activeTimer={mySide}
-              />
+              <div className="timer-container">
+                <Timer
+                  currentTime={myTimerTime}
+                  isActive={myTimerActive}
+                  onTimeEnd={stopTimers}
+                  onTimeUpdate={handleMyTimeUpdate}
+                />
+                <Timer
+                  currentTime={opTimerTime}
+                  isActive={opTimerActive}
+                  onTimeEnd={stopTimers}
+                  onTimeUpdate={handleOpTimeUpdate}
+                />
+              </div>
 
               <div className="game-board-container">
                 <div className="captured-pieces top">
@@ -534,31 +537,31 @@ const Game: React.FC = () => {
               {/* Tab Menu */}
               <div className="flex border-b border-amber-500/20 mb-4">
                 <button
-                  onClick={() => setActiveTab('info')}
+                  onClick={() => setActiveTab("info")}
                   className={`px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                    activeTab === 'info'
-                      ? 'text-amber-300 border-b-2 border-amber-500'
-                      : 'text-amber-100/60 hover:text-amber-300'
+                    activeTab === "info"
+                      ? "text-amber-300 border-b-2 border-amber-500"
+                      : "text-amber-100/60 hover:text-amber-300"
                   }`}
                 >
                   Info
                 </button>
                 <button
-                  onClick={() => setActiveTab('moves')}
+                  onClick={() => setActiveTab("moves")}
                   className={`px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                    activeTab === 'moves'
-                      ? 'text-amber-300 border-b-2 border-amber-500'
-                      : 'text-amber-100/60 hover:text-amber-300'
+                    activeTab === "moves"
+                      ? "text-amber-300 border-b-2 border-amber-500"
+                      : "text-amber-100/60 hover:text-amber-300"
                   }`}
                 >
                   Moves
                 </button>
                 <button
-                  onClick={() => setActiveTab('chat')}
+                  onClick={() => setActiveTab("chat")}
                   className={`px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                    activeTab === 'chat'
-                      ? 'text-amber-300 border-b-2 border-amber-500'
-                      : 'text-amber-100/60 hover:text-amber-300'
+                    activeTab === "chat"
+                      ? "text-amber-300 border-b-2 border-amber-500"
+                      : "text-amber-100/60 hover:text-amber-300"
                   }`}
                 >
                   Chat
@@ -567,14 +570,14 @@ const Game: React.FC = () => {
 
               {/* Tab Content */}
               <div className="h-[calc(100vh-12rem)] overflow-y-auto">
-                {activeTab === 'info' && (
+                {activeTab === "info" && (
                   <GameInfo
                     playerColor={orientation}
                     opponent={
                       (game?.black as UserType)?.username === user?.username
-                        ? (game?.black as UserType)?.username ||
+                        ? (game?.white as UserType)?.username ||
                           "Waiting for opponent..."
-                        : (game?.white as UserType)?.username ||
+                        : (game?.black as UserType)?.username ||
                           "Waiting for opponent..."
                     }
                     opponentRating={1200}
@@ -586,19 +589,17 @@ const Game: React.FC = () => {
                     gameOver={gameOver}
                   />
                 )}
-                {activeTab === 'moves' && (
-                  <MoveHistory 
-                    moves={moves} 
-                    setFen={setFen} 
-                    chess={chess} 
-                    setMoveIndex={setMoveIndex} 
-                    removeTempo={() => {}} 
-                    fen={fen} 
+                {activeTab === "moves" && (
+                  <MoveHistory
+                    moves={moves}
+                    setFen={setFen}
+                    chess={chess}
+                    setMoveIndex={setMoveIndex}
+                    removeTempo={() => {}}
+                    fen={fen}
                   />
                 )}
-                {activeTab === 'chat' && (
-                  <Chat gameId={gameId} />
-                )}
+                {activeTab === "chat" && <Chat gameId={gameId} />}
               </div>
             </div>
           </div>

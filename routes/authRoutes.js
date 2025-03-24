@@ -11,5 +11,6 @@ router.get("/getUser", checkUser, (req, res) => {
     if (req.currUser) return res.status(200).json({user: req.currUser})
     return res.status(401).json("unauthorized")
 });
+router.put("/update-profile", checkUser, authController.update_profile);
 
 module.exports = router;

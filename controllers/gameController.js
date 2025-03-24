@@ -63,6 +63,7 @@ module.exports.gameOver = async (gameId, result, winner, reason) => {
     game.result = result;
     game.winner = winner;
     game.reason = reason;
+    game.reason === "Time's Up" ? game.winner === "black" ? game.timers.white = 0 : game.timers.black = 0 : null;
     await game.save();
     return { success: true, game };
   } catch (error) {
@@ -131,8 +132,7 @@ module.exports.getGameByUser = async (req, res) => {
 
 module.exports.startStockfishForGame = (roomId) => {
   if (!stockfishProcesses[roomId]) {
-    const stockfishPath =
-      "C:/Users/PC-CLICK-PLUS/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe";
+    const stockfishPath = process.env.STOCKFISH_PATH || "stockfish";
     const stockfishProcess = spawn(stockfishPath);
     stockfishProcess.stdin.write("uci\n"); // Initialize Stockfish
     stockfishProcesses[roomId] = stockfishProcess;
@@ -216,5 +216,55 @@ module.exports.stopAllStockfishProcesses = () => {
   console.log("Stopping all Stockfish processes...");
   for (let roomId in stockfishProcesses) {
     this.stopStockfishForGame(roomId);
+  }
+};
+
+module.exports.getUserStats = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const user = await User.findOne({ username });
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Get all games where the user is either white or black
+    const games = await Game.find({
+      $or: [
+        { white: user._id },
+        { black: user._id }
+      ]
+    });
+
+    let gamesPlayed = games.length;
+    let gamesWon = 0;
+    let gamesLost = 0;
+    let gamesDrawn = 0;
+
+    games.forEach(game => {
+      if (game.result === "draw") {
+        gamesDrawn++;
+      } else if (
+        (game.result === "white" && game.white.toString() === user._id.toString()) ||
+        (game.result === "black" && game.black.toString() === user._id.toString())
+      ) {
+        gamesWon++;
+      } else {
+        gamesLost++;
+      }
+    });
+
+    const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
+
+    res.status(200).json({
+      gamesPlayed,
+      gamesWon,
+      gamesLost,
+      gamesDrawn,
+      winRate
+    });
+  } catch (err) {
+    console.error("Error getting user stats:", err);
+    res.status(500).json({ message: "Error getting user statistics" });
   }
 };

@@ -60,9 +60,17 @@ export default function Navbar() {
       <div className="flex items-center gap-4">
         {user ? (
           <div className="relative">
-            <button onClick={toggleDropdown} className="nav-link">
-              {user.username}
-            </button>
+            <div className="flex items-center gap-2">
+              <Link to="/profile" className="nav-link">
+                {user.username}
+              </Link>
+              <button 
+                onClick={toggleDropdown} 
+                className="text-amber-300 hover:text-amber-400"
+              >
+                ▼
+              </button>
+            </div>
             {isDropdownOpen && (
               <div className="absolute right-0 top-full mt-2 bg-[rgba(50,50,50,0.95)] border border-[rgba(255,215,0,0.3)] rounded-lg shadow-lg min-w-[160px] z-50">
                 <Link

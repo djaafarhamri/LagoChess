@@ -1,91 +1,52 @@
-const EvalBar = ({
-  evalScore,
-  turn,
-  orientation,
-}: {
+import React from 'react';
+
+type EvalBarProps = {
   evalScore: number;
-  turn: "w" | "b";
-  orientation: string;
-}) => {
-  console.log(evalScore);
-  if (orientation[0] !== turn) {
-    evalScore = evalScore * -1;
-  }
+  turn: 'w' | 'b';
+  orientation: 'white' | 'black';
+};
 
-  // Normalize the evalScore for display.
-  let MyPercentage = 50;
+const EvalBar: React.FC<EvalBarProps> = ({ evalScore, turn, orientation }) => {
+  // Convert evaluation to percentage (assuming eval is between -10 and 10)
+  const percentage = Math.min(Math.max((evalScore + 10) * 5, 0), 100);
+  
+  // Determine the color based on the evaluation
+  const getEvalColor = (score: number) => {
+    if (score > 2) return 'bg-green-500';
+    if (score > 1) return 'bg-green-400';
+    if (score > 0.5) return 'bg-green-300';
+    if (score > 0) return 'bg-green-200';
+    if (score > -0.5) return 'bg-red-200';
+    if (score > -1) return 'bg-red-300';
+    if (score > -2) return 'bg-red-400';
+    return 'bg-red-500';
+  };
 
-  if (!evalScore && turn === "w") {
-    // Mate is a decisive advantage for white
-    MyPercentage = 100;
-  } else if (!evalScore && turn === "b") {
-    // Mate is a decisive advantage for black
-    MyPercentage = 0;
-  } else if (evalScore) {
-    // Clamp evalScore to the range [-4, 4]
-    const clampedScore = Math.min(4, Math.max(-4, evalScore));
-
-    if (evalScore >= 4) {
-      MyPercentage = 90; // Cap at 90% for evalScore >= 4
-    } else if (evalScore <= -4) {
-      MyPercentage = 10; // Cap at 10% for evalScore <= -4
-    } else {
-      // Scale [-4, 4] to [10%, 90%]
-      MyPercentage = ((clampedScore + 4) / 8) * 80 + 10;
-    }
-  }
-
-  const opPercentage = 100 - MyPercentage;
+  // Format the evaluation score
+  const formatEval = (score: number) => {
+    if (score > 0) return `+${score.toFixed(1)}`;
+    return score.toFixed(1);
+  };
 
   return (
-    <div className="w-8 h-full flex flex-col border border-[#ffd700] border-opacity-20 rounded-lg overflow-hidden mr-4">
-      {orientation === "black" ? (
-        <>
-          <div
-            className="bg-white bg-opacity-90 transition-all duration-200 ease-in-out relative group"
-            style={{ height: `${MyPercentage}%` }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-70">
-              <span className="text-xs font-mono text-[#ffd700] transform -rotate-90">
-                {(evalScore * -1).toFixed(1)}
-              </span>
-            </div>
-          </div>
-          <div
-            className="bg-[#1a1a1a] transition-all duration-200 ease-in-out relative group"
-            style={{ height: `${opPercentage}%` }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-70">
-              <span className="text-xs font-mono text-[#ffd700] transform -rotate-90">
-                {evalScore.toFixed(1)}
-              </span>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <div
-            className="bg-[#1a1a1a] transition-all duration-200 ease-in-out relative group"
-            style={{ height: `${opPercentage}%` }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-70">
-              <span className="text-xs font-mono text-[#ffd700] transform -rotate-90">
-                {(evalScore * -1).toFixed(1)}
-              </span>
-            </div>
-          </div>
-          <div
-            className="bg-white bg-opacity-90 transition-all duration-200 ease-in-out relative group"
-            style={{ height: `${MyPercentage}%` }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-70">
-              <span className="text-xs font-mono text-[#ffd700] transform -rotate-90">
-                {evalScore.toFixed(1)}
-              </span>
-            </div>
-          </div>
-        </>
-      )}
+    <div className="w-8 h-full flex flex-col items-center justify-center">
+      <div className="w-full h-full relative">
+        {/* Background bar */}
+        <div className="absolute inset-0 bg-[#2a2a2a] rounded-lg"></div>
+        
+        {/* Evaluation bar */}
+        <div 
+          className={`absolute bottom-0 w-full transition-all duration-300 rounded-b-lg ${getEvalColor(evalScore)}`}
+          style={{ height: `${percentage}%` }}
+        ></div>
+
+        {/* Evaluation text */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-sm font-medium text-white">
+            {formatEval(evalScore)}
+          </span>
+        </div>
+      </div>
     </div>
   );
 };

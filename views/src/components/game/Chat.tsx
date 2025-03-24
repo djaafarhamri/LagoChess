@@ -59,7 +59,7 @@ const Chat = ({gameId}: {gameId: string | undefined}) => {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-4/5">
       <div className="flex-1 overflow-y-auto space-y-2 p-3">
         {messages.map((msg, index) => (
           <div key={index} className={`flex items-end ${msg.sender === user?.username ? "justify-end" : "justify-start"}`}>

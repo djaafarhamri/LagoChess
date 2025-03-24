@@ -65,3 +65,47 @@ module.exports.login_post = async (req, res) => {
 module.exports.logout_get = (req, res) => {
   return res.status(202).clearCookie("jwt").send("cookie cleared");
 };
+
+module.exports.update_profile = async (req, res) => {
+  const { username, email, currentPassword, newPassword } = req.body;
+  const userId = req.currUser._id;
+
+  try {
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // If changing password, verify current password
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: "Current password is required" });
+      }
+      const auth = await bcrypt.compare(currentPassword, user.password);
+      if (!auth) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+      user.password = newPassword;
+    }
+
+    // Update username and email if provided
+    if (username) user.username = username;
+    if (email) user.email = email;
+
+    // Save changes
+    await user.save();
+
+    // Return updated user without password
+    const updatedUser = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+    };
+
+    res.status(200).json({ user: updatedUser });
+  } catch (err) {
+    const errors = handleErrors(err);
+    res.status(400).json({ errors });
+  }
+};
